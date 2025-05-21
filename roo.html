@@ -7,37 +7,15 @@
   <style>
     body {
       margin: 0;
-      background: #000;
+      padding: 0;
+      background: #111;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       color: white;
       overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
     }
     
-    /* YouTube video background */
-    .video-background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    
-    #youtube-player {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      min-width: 100%;
-      min-height: 100%;
-      width: auto;
-      height: auto;
-      opacity: 0.3;
-    }
-    
-    /* Rainbow animation for all highlighted elements */
+    /* Rainbow animation for highlighted elements */
     @keyframes rainbow {
       0% { color: #ff0000; }
       14% { color: #ff7f00; }
@@ -72,14 +50,14 @@
     }
     
     @keyframes rainbowGlow {
-      0% { box-shadow: 0 0 15px #ff0000; }
-      14% { box-shadow: 0 0 15px #ff7f00; }
-      28% { box-shadow: 0 0 15px #ffff00; }
-      42% { box-shadow: 0 0 15px #00ff00; }
-      56% { box-shadow: 0 0 15px #0000ff; }
-      70% { box-shadow: 0 0 15px #4b0082; }
-      85% { box-shadow: 0 0 15px #9400d3; }
-      100% { box-shadow: 0 0 15px #ff0000; }
+      0% { box-shadow: 0 0 10px #ff0000; }
+      14% { box-shadow: 0 0 10px #ff7f00; }
+      28% { box-shadow: 0 0 10px #ffff00; }
+      42% { box-shadow: 0 0 10px #00ff00; }
+      56% { box-shadow: 0 0 10px #0000ff; }
+      70% { box-shadow: 0 0 10px #4b0082; }
+      85% { box-shadow: 0 0 10px #9400d3; }
+      100% { box-shadow: 0 0 10px #ff0000; }
     }
     
     /* Main layout (mobile-first) */
@@ -96,6 +74,7 @@
     .map-column {
       width: 100%;
       position: relative;
+      margin-bottom: 15px;
     }
     
     .info-column {
@@ -103,26 +82,29 @@
       display: flex;
       flex-direction: column;
       gap: 15px;
-      overflow-y: auto;
-      max-height: none;
     }
     
     .container {
       position: relative;
       width: 100%;
+      background: #000;
+      border-radius: 8px;
+      overflow: hidden;
     }
     
     .map-img {
       width: 100%;
       display: block;
+      max-width: 100%;
     }
     
     .stage {
       position: absolute;
       cursor: pointer;
-      background-color: rgba(255, 255, 255, 0.1);
-      border: 1px dashed;
+      background-color: rgba(255, 255, 255, 0.15);
+      border: 2px dashed;
       animation: rainbowBorder 10s linear infinite;
+      border-radius: 4px;
     }
     
     /* Stage performance indicator */
@@ -132,8 +114,8 @@
       background-color: rgba(255, 255, 255, 0.2);
       border: 2px solid;
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      width: 24px;
+      height: 24px;
       transform: translate(-50%, -50%);
       z-index: 5;
       animation: rainbowBorder 10s linear infinite, rainbowGlow 10s linear infinite, pulse 2s infinite;
@@ -142,11 +124,11 @@
     .stage-indicator .artist-name {
       position: absolute;
       background: rgba(0, 0, 0, 0.8);
-      padding: 5px 8px;
+      padding: 4px 6px;
       border-radius: 4px;
       font-size: 10px;
       white-space: nowrap;
-      top: -25px;
+      top: -20px;
       left: 50%;
       transform: translateX(-50%);
       border: 1px solid;
@@ -170,8 +152,8 @@
       padding: 10px;
       border-radius: 5px;
       font-size: 14px;
-      max-width: 260px;
-      min-width: 180px;
+      max-width: 220px;
+      min-width: 160px;
       z-index: 20;
       top: 0;
       left: 0;
@@ -215,22 +197,38 @@
       100% { border-color: #ff0000 transparent transparent transparent; }
     }
     
-    .day-selector, .time-selector {
+    .controls-container {
+      background: #222;
+      border-radius: 8px;
       padding: 10px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .day-selector, .time-selector {
+      padding: 5px;
       text-align: center;
     }
     
+    .day-selector {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+    }
+    
     .day-selector button {
-      margin: 0 2px;
-      padding: 10px 10px;
+      flex: 1;
+      margin: 0;
+      padding: 10px 0;
       font-size: 14px;
       cursor: pointer;
-      background: #222;
+      background: #333;
       color: white;
       border: 1px solid #444;
       border-radius: 4px;
-      min-width: 70px;
+      min-width: 40px;
       touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
     
     .day-selector button.active {
@@ -247,8 +245,9 @@
       margin-top: 5px;
       border-radius: 4px;
       border: 1px solid #444;
-      background-color: #222;
+      background-color: #333;
       color: white;
+      -webkit-appearance: none;
     }
     
     /* Timeline styles */
@@ -256,10 +255,11 @@
       position: relative;
       width: 100%;
       height: 80px;
-      background: #111;
+      background: #222;
       border-radius: 8px;
       padding: 10px;
       box-sizing: border-box;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
     .timeline {
@@ -323,9 +323,10 @@
     
     /* Current artists panel */
     .current-artists {
-      background: #111;
+      background: #222;
       border-radius: 8px;
       padding: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
     .current-artists h2 {
@@ -344,6 +345,7 @@
       justify-content: space-between;
       border-left: 3px solid;
       animation: rainbowBorder 10s linear infinite;
+      align-items: center;
     }
     
     .artist-stage {
@@ -360,11 +362,12 @@
     
     /* Full Schedule Display */
     .full-schedule {
-      background: #111;
+      background: #222;
       border-radius: 8px;
       padding: 15px;
       overflow-y: auto;
       flex-grow: 1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
     
     .full-schedule h2 {
@@ -381,22 +384,23 @@
     }
     
     .stage-schedule {
-      background: #1a1a1a;
+      background: #333;
       border-radius: 6px;
-      padding: 15px;
+      padding: 12px;
+      margin-bottom: 15px;
     }
     
     .stage-schedule h3 {
       text-align: center;
       margin-top: 0;
       padding-bottom: 10px;
-      border-bottom: 1px solid #333;
+      border-bottom: 1px solid #444;
       animation: rainbow 10s linear infinite;
       font-size: 16px;
     }
     
     .artist-slot {
-      padding: 12px 8px;
+      padding: 10px 8px;
       margin: 5px 0;
       border-radius: 4px;
       transition: background-color 0.3s ease;
@@ -431,68 +435,6 @@
       font-size: 0.9em;
     }
     
-    /* Controls at the top */
-    .controls-container {
-      background: #111;
-      border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    
-    /* Audio controls */
-    .audio-controls {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 10px;
-      border-radius: 50px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid;
-      animation: rainbowBorder 10s linear infinite;
-    }
-    
-    .audio-controls button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      animation: rainbow 10s linear infinite;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    .audio-controls button:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .audio-controls .volume-slider {
-      width: 60px;
-      margin: 0 5px;
-      -webkit-appearance: none;
-      height: 8px;
-      background: #444;
-      border-radius: 4px;
-    }
-    
-    .audio-controls .volume-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      animation: rainbowBackground 10s linear infinite;
-    }
-    
     /* Media queries for larger screens */
     @media (min-width: 768px) {
       .stages-grid {
@@ -500,7 +442,6 @@
       }
       
       .day-selector button {
-        margin: 0 5px;
         padding: 8px 14px;
       }
     }
@@ -508,19 +449,20 @@
     @media (min-width: 992px) {
       .main-container {
         flex-direction: row;
+        max-width: 1200px;
+        margin: 0 auto;
       }
       
       .map-column {
-        flex: 0 0 60%;
+        flex: 0 0 55%;
+        margin-bottom: 0;
       }
       
       .info-column {
         flex: 1;
         max-height: 100vh;
-      }
-      
-      .stages-grid {
-        grid-template-columns: repeat(2, 1fr);
+        overflow-y: auto;
+        padding-left: 15px;
       }
     }
     
@@ -529,28 +471,9 @@
         grid-template-columns: repeat(3, 1fr);
       }
     }
-    
-    /* Fix for iOS inputs */
-    input[type="time"], 
-    input[type="range"] {
-      -webkit-appearance: none;
-    }
   </style>
 </head>
 <body>
-
-<!-- YouTube video background -->
-<div class="video-background">
-  <div id="youtube-player"></div>
-</div>
-
-<!-- Audio controls -->
-<div class="audio-controls">
-  <button id="toggle-audio" title="Toggle audio">
-    <span id="audio-icon">🔊</span>
-  </button>
-  <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
-</div>
 
 <div class="controls-container">
   <div class="day-selector">
@@ -566,10 +489,10 @@
 </div>
 
 <div class="main-container">
-  <!-- Left column for map -->
+  <!-- Map section -->
   <div class="map-column">
     <div class="container">
-      <img src="Roo25_Patron-Map-05.16-Social_Centeroo.png" class="map-img" alt="Bonnaroo Map">
+      <img src="./Roo25_Patron-Map-05.16-Social_Centeroo.png" class="map-img" alt="Bonnaroo Map">
       
       <!-- Stage indicators for active performances -->
       <div id="whatStage-indicator" class="stage-indicator" style="top: 15.5%; left: 32.0%;"></div>
@@ -597,7 +520,7 @@
     </div>
   </div>
   
-  <!-- Right column for schedule information -->
+  <!-- Schedule information section -->
   <div class="info-column">
     <!-- Timeline element -->
     <div class="timeline-container">
@@ -633,124 +556,6 @@ const stageNames = {
   'thisTent': 'THIS TENT',
   'thatTent': 'THAT TENT'
 };
-
-// YouTube API setup
-let player;
-let isAudioMuted = false;
-
-// Load YouTube API
-const tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-const firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-// Create YouTube player when API is ready
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('youtube-player', {
-    videoId: 'C6CMhhsHPO8', // The provided YouTube video ID
-    playerVars: {
-      autoplay: 1,
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      modestbranding: 1,
-      rel: 0,
-      showinfo: 0,
-      iv_load_policy: 3,
-      loop: 1,
-      playlist: 'C6CMhhsHPO8', // For looping, need to repeat the video ID
-      mute: 1 // Start muted on mobile
-    },
-    events: {
-      'onReady': onPlayerReady,
-      'onStateChange': onPlayerStateChange,
-      'onError': onPlayerError
-    }
-  });
-}
-
-function onPlayerReady(event) {
-  // Set initial volume to match slider
-  const volume = document.getElementById('volume-slider').value;
-  player.setVolume(volume);
-  
-  // Play video immediately
-  player.playVideo();
-  
-  // Update UI
-  updateAudioButton();
-}
-
-function onPlayerStateChange(event) {
-  // If video ends, restart it
-  if (event.data === YT.PlayerState.ENDED) {
-    player.playVideo();
-  }
-  // If video is paused, try to play it
-  else if (event.data === YT.PlayerState.PAUSED) {
-    player.playVideo();
-  }
-}
-
-function onPlayerError(event) {
-  console.log("YouTube player error:", event.data);
-  // Leave the background black as requested if video fails
-  document.querySelector('.video-background').style.display = 'none';
-}
-
-// Audio control functions
-function toggleAudio() {
-  if (player) {
-    if (player.isMuted()) {
-      player.unMute();
-      isAudioMuted = false;
-    } else {
-      player.mute();
-      isAudioMuted = true;
-    }
-    updateAudioButton();
-  }
-}
-
-function updateAudioButton() {
-  const audioIcon = document.getElementById('audio-icon');
-  if (player && player.isMuted()) {
-    audioIcon.textContent = '🔇';
-  } else {
-    audioIcon.textContent = '🔊';
-  }
-}
-
-// Set volume
-function setVolume(value) {
-  if (player) {
-    player.setVolume(value);
-    // If the user increases volume from zero, unmute
-    if (value > 0 && player.isMuted()) {
-      player.unMute();
-      updateAudioButton();
-    }
-  }
-}
-
-// Event listeners for audio controls
-document.addEventListener('DOMContentLoaded', function() {
-  const toggleAudioBtn = document.getElementById('toggle-audio');
-  const volumeSlider = document.getElementById('volume-slider');
-  
-  toggleAudioBtn.addEventListener('click', toggleAudio);
-  volumeSlider.addEventListener('input', function() {
-    setVolume(this.value);
-  });
-  
-  // Try to unmute on first user interaction
-  document.body.addEventListener('click', function() {
-    if (player && player.isMuted()) {
-      player.unMute();
-      updateAudioButton();
-    }
-  }, { once: true });
-});
 
 const schedules = {
   whatStage: {
@@ -791,6 +596,7 @@ const schedules = {
   }
 };
 
+// Set the active day
 function setDay(day) {
   currentDay = day;
   
@@ -806,6 +612,7 @@ function setDay(day) {
   updateStageIndicators();
 }
 
+// Set the current time
 function setTime(time) {
   currentTime = time;
   updateTimeDisplay();
@@ -815,11 +622,13 @@ function setTime(time) {
   updateStageIndicators();
 }
 
+// Update the time display
 function updateTimeDisplay() {
   document.getElementById('current-time-display').textContent = 
     capitalize(currentDay) + ' ' + formatTime(currentTime);
 }
 
+// Show stage tooltip
 function showStageTooltip(stageKey, stageName) {
   const stageElement = document.querySelector(`[data-stage="${stageKey}"]`);
   const tooltip = document.getElementById(`tooltip-${stageKey}`);
@@ -846,7 +655,7 @@ function showStageTooltip(stageKey, stageName) {
   
   if (currentArtist) {
     tooltipContent += `<div class="current-artist">★ NOW PLAYING: ${currentArtist.artist} ★</div>
-                      <hr style="border-color: #333;">`;
+                      <hr style="border-color: #444;">`;
   }
   
   tooltipContent += schedule;
@@ -854,6 +663,7 @@ function showStageTooltip(stageKey, stageName) {
   tooltip.style.display = 'block';
 }
 
+// Hide stage tooltip
 function hideStageTooltip(stageKey) {
   const tooltip = document.getElementById(`tooltip-${stageKey}`);
   if (tooltip) {
@@ -861,10 +671,12 @@ function hideStageTooltip(stageKey) {
   }
 }
 
+// Capitalize first letter of word
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+// Format time from 24h to 12h format
 function formatTime(time24h) {
   // If already in 12h format (contains AM/PM), return as is
   if (time24h.includes('AM') || time24h.includes('PM')) {
@@ -878,6 +690,7 @@ function formatTime(time24h) {
   return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
+// Parse 12-hour time to a standard format
 function parse12hTime(time12h) {
   // Extract hours, minutes, and period from format like "5:45 PM" or "12:30 AM"
   let cleanTime = time12h.trim();
@@ -911,11 +724,9 @@ function parse12hTime(time12h) {
   };
 }
 
+// Check if a time is within a range
 function timeInRange(targetTime, startTime, endTime) {
-  // This is a more robust time comparison function
-  
   // First, ensure we have proper AM/PM designation for startTime and endTime
-  // These come from the schedule and might be like "5:45" or "5:45 PM"
   let start = startTime.trim();
   let end = endTime.trim();
   
@@ -969,6 +780,7 @@ function timeInRange(targetTime, startTime, endTime) {
   return targetMin >= startMin && targetMin <= endMin;
 }
 
+// Get current artist for a stage
 function getCurrentArtistForStage(stageKey) {
   const rawSchedule = schedules[stageKey][currentDay] || '';
   
@@ -1049,8 +861,9 @@ function initializeTimeline() {
   const markers = document.getElementById('timeline-markers');
   markers.innerHTML = '';
   
-  // Add hour markers
-  for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+  // Add hour markers - but fewer for mobile
+  const hourStep = window.innerWidth < 768 ? 2 : 1;
+  for (let hour = START_HOUR; hour <= END_HOUR; hour += hourStep) {
     const displayHour = hour % 24;
     const ampm = displayHour >= 12 ? 'PM' : 'AM';
     const display12Hour = displayHour % 12 || 12;
@@ -1075,14 +888,19 @@ function initializeTimeline() {
   
   // Make slider draggable for both mouse and touch
   const slider = document.getElementById('timeline-slider');
+  const timeline = document.querySelector('.timeline');
   let isDragging = false;
   
   // Mouse events
-  slider.addEventListener('mousedown', () => {
+  slider.addEventListener('mousedown', (e) => {
     isDragging = true;
+    e.preventDefault();
   });
   
-  document.addEventListener('mousemove', handleDrag);
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) handleDrag(e);
+  });
+  
   document.addEventListener('mouseup', () => {
     isDragging = false;
   });
@@ -1106,9 +924,6 @@ function initializeTimeline() {
   });
   
   function handleDrag(e) {
-    if (!isDragging) return;
-    
-    const timeline = document.querySelector('.timeline');
     const rect = timeline.getBoundingClientRect();
     
     let position = (e.clientX - rect.left) / rect.width;
@@ -1116,7 +931,6 @@ function initializeTimeline() {
   }
   
   function handleDragTouch(touch) {
-    const timeline = document.querySelector('.timeline');
     const rect = timeline.getBoundingClientRect();
     
     let position = (touch.clientX - rect.left) / rect.width;
@@ -1138,7 +952,12 @@ function initializeTimeline() {
     // Only update if time has changed
     if (timeString !== currentTime) {
       currentTime = timeString;
-      document.getElementById('timeRange').value = currentTime;
+      try {
+        document.getElementById('timeRange').value = currentTime;
+      } catch (e) {
+        // Some browsers might have issues with time inputs
+        console.log("Couldn't set time input value:", e);
+      }
       updateTimeDisplay();
       updateCurrentArtists();
       highlightCurrentArtists();
@@ -1147,8 +966,6 @@ function initializeTimeline() {
   }
   
   // Make timeline clickable/tappable
-  const timeline = document.querySelector('.timeline');
-  
   timeline.addEventListener('click', (e) => {
     const rect = timeline.getBoundingClientRect();
     let position = (e.clientX - rect.left) / rect.width;
@@ -1156,14 +973,17 @@ function initializeTimeline() {
   });
   
   timeline.addEventListener('touchstart', (e) => {
+    // Don't handle if we're touching the slider itself
+    if (e.target === slider) return;
+    
     const touch = e.touches[0];
     const rect = timeline.getBoundingClientRect();
     let position = (touch.clientX - rect.left) / rect.width;
     updateSliderPosition(position);
-    e.preventDefault();
   });
 }
 
+// Update timeline slider position based on current time
 function updateTimeSlider() {
   const parsedTime = currentTime.includes(':') ? currentTime.split(':').map(Number) : [0, 0];
   const [hours, minutes] = parsedTime;
@@ -1179,6 +999,7 @@ function updateTimeSlider() {
   slider.style.left = `${Math.max(0, Math.min(100, position * 100))}%`;
 }
 
+// Update the currently playing artists panel
 function updateCurrentArtists() {
   const artistsList = document.getElementById('artists-list');
   artistsList.innerHTML = '';
@@ -1195,8 +1016,8 @@ function updateCurrentArtists() {
       artistCard.className = 'artist-card';
       artistCard.innerHTML = `
         <div>
-          <span class="artist-name">${currentArtist.artist}</span>
-          <span class="artist-stage"> @ ${stageName}</span>
+          <span class="artist-name">${currentArtist.artist}</span><br>
+          <span class="artist-stage">${stageName}</span>
         </div>
         <div class="artist-time">${currentArtist.time}</div>
       `;
@@ -1318,13 +1139,33 @@ function highlightCurrentArtists() {
     if (slot.dataset.start && slot.dataset.end) {
       if (timeInRange(currentTime, slot.dataset.start, slot.dataset.end)) {
         slot.classList.add('current');
+        
+        // Scroll to the current artist if needed
+        if (window.innerWidth < 768) {
+          slot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     }
   });
 }
 
+// Fix image path if needed
+function fixImagePath() {
+  const mapImg = document.querySelector('.map-img');
+  
+  // First try with the current path
+  let img = new Image();
+  img.onerror = function() {
+    // If that fails, try without the ./ prefix
+    mapImg.src = 'Roo25_Patron-Map-05.16-Social_Centeroo.png';
+  };
+  img.src = mapImg.src;
+}
+
 // Initialize on load
 window.onload = function() {
+  fixImagePath();
+  
   // Set active day button
   document.getElementById(`btn-${currentDay}`).classList.add('active');
   
@@ -1342,20 +1183,27 @@ window.onload = function() {
       hideStageTooltip(stageKey);
     });
     
-    // For mobile - show tooltip on tap, hide when tapping elsewhere
+    // For mobile - show tooltip on tap
     stage.addEventListener('touchstart', (e) => {
       e.preventDefault();
+      e.stopPropagation();
+      
+      // Hide all other tooltips first
+      document.querySelectorAll('.tooltip').forEach(tip => {
+        tip.style.display = 'none';
+      });
+      
       showStageTooltip(stageKey, stageName);
       
       // Create one-time event listener to hide tooltip when tapping elsewhere
-      const hideOnTapOutside = (e) => {
-        if (!stage.contains(e.target)) {
+      const hideOnTapOutside = (event) => {
+        if (!stage.contains(event.target) && !document.getElementById(`tooltip-${stageKey}`).contains(event.target)) {
           hideStageTooltip(stageKey);
           document.removeEventListener('touchstart', hideOnTapOutside);
         }
       };
       
-      // Add the listener after a small delay to prevent immediate triggering
+      // Add the listener after a small delay
       setTimeout(() => {
         document.addEventListener('touchstart', hideOnTapOutside);
       }, 10);
@@ -1367,6 +1215,15 @@ window.onload = function() {
   updateCurrentArtists();
   generateFullSchedule();
   updateStageIndicators();
+  
+  // Add a general tap handler to hide tooltips when tapping background
+  document.addEventListener('touchstart', (e) => {
+    if (!e.target.closest('.stage') && !e.target.closest('.tooltip')) {
+      document.querySelectorAll('.tooltip').forEach(tip => {
+        tip.style.display = 'none';
+      });
+    }
+  });
 };
 </script>
 
