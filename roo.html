@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Bonnaroo Interactive Map</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      color: white;
+      overscroll-behavior: none;
+    }
+    
+    /* YouTube video background */
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    #youtube-player {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      opacity: 0.3;
+    }
+    
+    /* Rainbow animation for all highlighted elements */
+    @keyframes rainbow {
+      0% { color: #ff0000; }
+      14% { color: #ff7f00; }
+      28% { color: #ffff00; }
+      42% { color: #00ff00; }
+      56% { color: #0000ff; }
+      70% { color: #4b0082; }
+      85% { color: #9400d3; }
+      100% { color: #ff0000; }
+    }
+    
+    @keyframes rainbowBorder {
+      0% { border-color: #ff0000; }
+      14% { border-color: #ff7f00; }
+      28% { border-color: #ffff00; }
+      42% { border-color: #00ff00; }
+      56% { border-color: #0000ff; }
+      70% { border-color: #4b0082; }
+      85% { border-color: #9400d3; }
+      100% { border-color: #ff0000; }
+    }
+    
+    @keyframes rainbowBackground {
+      0% { background-color: rgba(255, 0, 0, 0.2); }
+      14% { background-color: rgba(255, 127, 0, 0.2); }
+      28% { background-color: rgba(255, 255, 0, 0.2); }
+      42% { background-color: rgba(0, 255, 0, 0.2); }
+      56% { background-color: rgba(0, 0, 255, 0.2); }
+      70% { background-color: rgba(75, 0, 130, 0.2); }
+      85% { background-color: rgba(148, 0, 211, 0.2); }
+      100% { background-color: rgba(255, 0, 0, 0.2); }
+    }
+    
+    @keyframes rainbowGlow {
+      0% { box-shadow: 0 0 15px #ff0000; }
+      14% { box-shadow: 0 0 15px #ff7f00; }
+      28% { box-shadow: 0 0 15px #ffff00; }
+      42% { box-shadow: 0 0 15px #00ff00; }
+      56% { box-shadow: 0 0 15px #0000ff; }
+      70% { box-shadow: 0 0 15px #4b0082; }
+      85% { box-shadow: 0 0 15px #9400d3; }
+      100% { box-shadow: 0 0 15px #ff0000; }
+    }
+    
+    /* Main layout (mobile-first) */
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin: 0 auto;
+      gap: 15px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    
+    .map-column {
+      width: 100%;
+      position: relative;
+    }
+    
+    .info-column {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      overflow-y: auto;
+      max-height: none;
+    }
+    
+    .container {
+      position: relative;
+      width: 100%;
+    }
+    
+    .map-img {
+      width: 100%;
+      display: block;
+    }
+    
+    .stage {
+      position: absolute;
+      cursor: pointer;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 1px dashed;
+      animation: rainbowBorder 10s linear infinite;
+    }
+    
+    /* Stage performance indicator */
+    .stage-indicator {
+      position: absolute;
+      display: none;
+      background-color: rgba(255, 255, 255, 0.2);
+      border: 2px solid;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+      animation: rainbowBorder 10s linear infinite, rainbowGlow 10s linear infinite, pulse 2s infinite;
+    }
+    
+    .stage-indicator .artist-name {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      white-space: nowrap;
+      top: -25px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 1px solid;
+      animation: rainbow 10s linear infinite, rainbowBorder 10s linear infinite;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.9); }
+      50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.9); }
+    }
+    
+    .tooltip {
+      display: none;
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.9);
+      border: 1px solid;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      max-width: 260px;
+      min-width: 180px;
+      z-index: 20;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -110%);
+      animation: rainbowBorder 10s linear infinite, rainbowGlow 10s linear infinite;
+    }
+    
+    .tooltip .current-artist {
+      font-size: 16px;
+      font-weight: bold;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.1);
+      text-align: center;
+      animation: rainbowBackground 10s linear infinite, rainbow 10s linear infinite;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 1);
+      letter-spacing: 0.5px;
+    }
+    
+    /* Small arrow pointing to the stage */
+    .tooltip:after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      margin-left: -10px;
+      border-width: 10px 10px 0;
+      border-style: solid;
+      animation: rainbowBorderArrow 10s linear infinite;
+    }
+    
+    @keyframes rainbowBorderArrow {
+      0% { border-color: #ff0000 transparent transparent transparent; }
+      14% { border-color: #ff7f00 transparent transparent transparent; }
+      28% { border-color: #ffff00 transparent transparent transparent; }
+      42% { border-color: #00ff00 transparent transparent transparent; }
+      56% { border-color: #0000ff transparent transparent transparent; }
+      70% { border-color: #4b0082 transparent transparent transparent; }
+      85% { border-color: #9400d3 transparent transparent transparent; }
+      100% { border-color: #ff0000 transparent transparent transparent; }
+    }
+    
+    .day-selector, .time-selector {
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .day-selector button {
+      margin: 0 2px;
+      padding: 10px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 4px;
+      min-width: 70px;
+      touch-action: manipulation;
+    }
+    
+    .day-selector button.active {
+      background: #111;
+      color: white;
+      border: 1px solid;
+      animation: rainbowBorder 10s linear infinite, rainbow 10s linear infinite;
+    }
+    
+    input[type="time"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 140px;
+      margin-top: 5px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      background-color: #222;
+      color: white;
+    }
+    
+    /* Timeline styles */
+    .timeline-container {
+      position: relative;
+      width: 100%;
+      height: 80px;
+      background: #111;
+      border-radius: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    
+    .timeline {
+      position: relative;
+      width: 100%;
+      height: 30px;
+      background: #333;
+      border-radius: 10px;
+      margin-top: 15px;
+      touch-action: none;
+    }
+    
+    .timeline-slider {
+      position: absolute;
+      width: 20px;
+      height: 40px;
+      top: -5px;
+      border-radius: 3px;
+      cursor: grab;
+      transform: translateX(-50%);
+      animation: rainbowBackground 10s linear infinite;
+    }
+    
+    .timeline-slider:active {
+      cursor: grabbing;
+    }
+    
+    .timeline-markers {
+      position: relative;
+      width: 100%;
+      height: 20px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+      box-sizing: border-box;
+    }
+    
+    .timeline-hour {
+      position: absolute;
+      font-size: 10px;
+      color: #aaa;
+      transform: translateX(-50%);
+    }
+    
+    .timeline-tick {
+      position: absolute;
+      height: 6px;
+      width: 1px;
+      background: #555;
+      bottom: 20px;
+      transform: translateX(-50%);
+    }
+    
+    .time-display {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 10px;
+      animation: rainbow 10s linear infinite;
+      font-weight: bold;
+    }
+    
+    /* Current artists panel */
+    .current-artists {
+      background: #111;
+      border-radius: 8px;
+      padding: 15px;
+    }
+    
+    .current-artists h2 {
+      margin-top: 0;
+      text-align: center;
+      animation: rainbow 10s linear infinite;
+      font-size: 18px;
+    }
+    
+    .artist-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+      padding: 10px;
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      border-left: 3px solid;
+      animation: rainbowBorder 10s linear infinite;
+    }
+    
+    .artist-stage {
+      font-weight: bold;
+      animation: rainbow 10s linear infinite;
+    }
+    
+    .artist-time {
+      color: #aaa;
+      font-size: 12px;
+      white-space: nowrap;
+      margin-left: 5px;
+    }
+    
+    /* Full Schedule Display */
+    .full-schedule {
+      background: #111;
+      border-radius: 8px;
+      padding: 15px;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+    
+    .full-schedule h2 {
+      text-align: center;
+      margin-top: 0;
+      animation: rainbow 10s linear infinite;
+      font-size: 18px;
+    }
+    
+    .stages-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    
+    .stage-schedule {
+      background: #1a1a1a;
+      border-radius: 6px;
+      padding: 15px;
+    }
+    
+    .stage-schedule h3 {
+      text-align: center;
+      margin-top: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+      animation: rainbow 10s linear infinite;
+      font-size: 16px;
+    }
+    
+    .artist-slot {
+      padding: 12px 8px;
+      margin: 5px 0;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .artist-slot.current {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-left: 3px solid;
+      animation: rainbowBorder 10s linear infinite, rainbowBackground 10s linear infinite;
+    }
+    
+    .artist-slot.current .artist-name {
+      animation: rainbow 10s linear infinite;
+      font-size: 1.1em;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-bottom: 3px;
+      background-color: rgba(0, 0, 0, 0.3);
+      transform: scale(1.05);
+      font-weight: bold;
+    }
+    
+    .artist-name {
+      font-weight: bold;
+    }
+    
+    .artist-time-slot {
+      color: #aaa;
+      font-size: 0.9em;
+    }
+    
+    /* Controls at the top */
+    .controls-container {
+      background: #111;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    
+    /* Audio controls */
+    .audio-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 50px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid;
+      animation: rainbowBorder 10s linear infinite;
+    }
+    
+    .audio-controls button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      animation: rainbow 10s linear infinite;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    .audio-controls button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .audio-controls .volume-slider {
+      width: 60px;
+      margin: 0 5px;
+      -webkit-appearance: none;
+      height: 8px;
+      background: #444;
+      border-radius: 4px;
+    }
+    
+    .audio-controls .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      animation: rainbowBackground 10s linear infinite;
+    }
+    
+    /* Media queries for larger screens */
+    @media (min-width: 768px) {
+      .stages-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .day-selector button {
+        margin: 0 5px;
+        padding: 8px 14px;
+      }
+    }
+    
+    @media (min-width: 992px) {
+      .main-container {
+        flex-direction: row;
+      }
+      
+      .map-column {
+        flex: 0 0 60%;
+      }
+      
+      .info-column {
+        flex: 1;
+        max-height: 100vh;
+      }
+      
+      .stages-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    @media (min-width: 1200px) {
+      .stages-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    /* Fix for iOS inputs */
+    input[type="time"], 
+    input[type="range"] {
+      -webkit-appearance: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- YouTube video background -->
+<div class="video-background">
+  <div id="youtube-player"></div>
+</div>
+
+<!-- Audio controls -->
+<div class="audio-controls">
+  <button id="toggle-audio" title="Toggle audio">
+    <span id="audio-icon">🔊</span>
+  </button>
+  <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
+</div>
+
+<div class="controls-container">
+  <div class="day-selector">
+    <button onclick="setDay('thursday')" id="btn-thursday">Thu</button>
+    <button onclick="setDay('friday')" id="btn-friday">Fri</button>
+    <button onclick="setDay('saturday')" id="btn-saturday">Sat</button>
+    <button onclick="setDay('sunday')" id="btn-sunday">Sun</button>
+  </div>
+  <div class="time-selector">
+    <label for="timeRange">Select Time:</label><br>
+    <input type="time" id="timeRange" value="17:00" step="900" onchange="setTime(this.value)">
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- Left column for map -->
+  <div class="map-column">
+    <div class="container">
+      <img src="Roo25_Patron-Map-05.16-Social_Centeroo.png" class="map-img" alt="Bonnaroo Map">
+      
+      <!-- Stage indicators for active performances -->
+      <div id="whatStage-indicator" class="stage-indicator" style="top: 15.5%; left: 32.0%;"></div>
+      <div id="whichStage-indicator" class="stage-indicator" style="top: 27.5%; left: 52.0%;"></div>
+      <div id="otherStage-indicator" class="stage-indicator" style="top: 91.5%; left: 80.0%;"></div>
+      <div id="infinityStage-indicator" class="stage-indicator" style="top: 27.0%; left: 87.0%;"></div>
+      <div id="thisTent-indicator" class="stage-indicator" style="top: 50.5%; left: 85.0%;"></div>
+      <div id="thatTent-indicator" class="stage-indicator" style="top: 91.5%; left: 47.0%;"></div>
+      
+      <!-- Stage areas -->
+      <div class="stage" style="top: 20.5%; left: 27.0%; width: 10%; height: 10.0%;" data-stage="whatStage" data-name="WHAT STAGE"></div>
+      <div class="stage" style="top: 32.5%; left: 47.0%; width: 10%; height: 10.0%;" data-stage="whichStage" data-name="WHICH STAGE"></div>
+      <div class="stage" style="top: 96.8%; left: 75.0%; width: 10%; height: 10.0%;" data-stage="otherStage" data-name="THE OTHER STAGE"></div>
+      <div class="stage" style="top: 32.0%; left: 82.0%; width: 10%; height: 10.0%;" data-stage="infinityStage" data-name="INFINITY STAGE"></div>
+      <div class="stage" style="top: 55.8%; left: 80.0%; width: 10%; height: 10.0%;" data-stage="thisTent" data-name="THIS TENT"></div>
+      <div class="stage" style="top: 96.8%; left: 42.0%; width: 10%; height: 10.0%;" data-stage="thatTent" data-name="THAT TENT"></div>
+      
+      <!-- Fixed-position tooltips for each stage -->
+      <div id="tooltip-whatStage" class="tooltip"></div>
+      <div id="tooltip-whichStage" class="tooltip"></div>
+      <div id="tooltip-otherStage" class="tooltip"></div>
+      <div id="tooltip-infinityStage" class="tooltip"></div>
+      <div id="tooltip-thisTent" class="tooltip"></div>
+      <div id="tooltip-thatTent" class="tooltip"></div>
+    </div>
+  </div>
+  
+  <!-- Right column for schedule information -->
+  <div class="info-column">
+    <!-- Timeline element -->
+    <div class="timeline-container">
+      <div class="time-display" id="current-time-display">Thursday 5:00 PM</div>
+      <div class="timeline-markers" id="timeline-markers"></div>
+      <div class="timeline">
+        <div class="timeline-slider" id="timeline-slider"></div>
+      </div>
+    </div>
+
+    <!-- Current artists panel -->
+    <div class="current-artists">
+      <h2>Currently Playing</h2>
+      <div id="artists-list"></div>
+    </div>
+
+    <!-- Full schedule display -->
+    <div class="full-schedule">
+      <h2>Full Day Schedule</h2>
+      <div class="stages-grid" id="full-schedule-grid"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentDay = 'thursday';
+let currentTime = '17:00';
+const stageNames = {
+  'whatStage': 'WHAT STAGE',
+  'whichStage': 'WHICH STAGE',
+  'otherStage': 'THE OTHER STAGE',
+  'infinityStage': 'INFINITY STAGE',
+  'thisTent': 'THIS TENT',
+  'thatTent': 'THAT TENT'
+};
+
+// YouTube API setup
+let player;
+let isAudioMuted = false;
+
+// Load YouTube API
+const tag = document.createElement('script');
+tag.src = "https://www.youtube.com/iframe_api";
+const firstScriptTag = document.getElementsByTagName('script')[0];
+firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+// Create YouTube player when API is ready
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('youtube-player', {
+    videoId: 'C6CMhhsHPO8', // The provided YouTube video ID
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      disablekb: 1,
+      fs: 0,
+      modestbranding: 1,
+      rel: 0,
+      showinfo: 0,
+      iv_load_policy: 3,
+      loop: 1,
+      playlist: 'C6CMhhsHPO8', // For looping, need to repeat the video ID
+      mute: 1 // Start muted on mobile
+    },
+    events: {
+      'onReady': onPlayerReady,
+      'onStateChange': onPlayerStateChange,
+      'onError': onPlayerError
+    }
+  });
+}
+
+function onPlayerReady(event) {
+  // Set initial volume to match slider
+  const volume = document.getElementById('volume-slider').value;
+  player.setVolume(volume);
+  
+  // Play video immediately
+  player.playVideo();
+  
+  // Update UI
+  updateAudioButton();
+}
+
+function onPlayerStateChange(event) {
+  // If video ends, restart it
+  if (event.data === YT.PlayerState.ENDED) {
+    player.playVideo();
+  }
+  // If video is paused, try to play it
+  else if (event.data === YT.PlayerState.PAUSED) {
+    player.playVideo();
+  }
+}
+
+function onPlayerError(event) {
+  console.log("YouTube player error:", event.data);
+  // Leave the background black as requested if video fails
+  document.querySelector('.video-background').style.display = 'none';
+}
+
+// Audio control functions
+function toggleAudio() {
+  if (player) {
+    if (player.isMuted()) {
+      player.unMute();
+      isAudioMuted = false;
+    } else {
+      player.mute();
+      isAudioMuted = true;
+    }
+    updateAudioButton();
+  }
+}
+
+function updateAudioButton() {
+  const audioIcon = document.getElementById('audio-icon');
+  if (player && player.isMuted()) {
+    audioIcon.textContent = '🔇';
+  } else {
+    audioIcon.textContent = '🔊';
+  }
+}
+
+// Set volume
+function setVolume(value) {
+  if (player) {
+    player.setVolume(value);
+    // If the user increases volume from zero, unmute
+    if (value > 0 && player.isMuted()) {
+      player.unMute();
+      updateAudioButton();
+    }
+  }
+}
+
+// Event listeners for audio controls
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleAudioBtn = document.getElementById('toggle-audio');
+  const volumeSlider = document.getElementById('volume-slider');
+  
+  toggleAudioBtn.addEventListener('click', toggleAudio);
+  volumeSlider.addEventListener('input', function() {
+    setVolume(this.value);
+  });
+  
+  // Try to unmute on first user interaction
+  document.body.addEventListener('click', function() {
+    if (player && player.isMuted()) {
+      player.unMute();
+      updateAudioButton();
+    }
+  }, { once: true });
+});
+
+const schedules = {
+  whatStage: {
+    thursday: `5:45 – 6:30 PM: Wilderado<br>7:15 – 8:15 PM: Marcus King<br>9:00 – 10:45 PM: Luke Combs`,
+    friday: `3:00 – 3:45 PM: Aly & AJ<br>4:45 – 5:45 PM: Flipturn<br>6:45 – 7:45 PM: Foster the People<br>8:45 – 10:00 PM: John Summit<br>11:00 – 12:15 AM: Tyler, The Creator` ,
+    saturday: `3:00 – 3:45 PM: Gigi Perez<br>4:30 – 5:30 PM: Raye<br>6:15 – 7:15 PM: Beabadoobee<br>7:30 – 8:30 PM: Mt. Joy<br>9:30 – 10:30 PM: Nelly<br>10:30 – 12:00 AM: Olivia Rodrigo`,
+    sunday: `2:00 – 2:45 PM: James Arthur<br>3:30 – 4:30 PM: Role Model<br>5:15 – 6:15 PM: Remi Wolf<br>7:15 – 8:30 PM: Vampire Weekend<br>9:30 – 11:00 PM: Hozier`
+  },
+  whichStage: {
+    thursday: `No sets listed`,
+    friday: `2:30 – 3:15 PM: Rachel Chinouriri<br>4:00 – 5:00 PM: Slightly Stoopid<br>5:45 – 6:45 PM: Wallows<br>7:30 – 8:45 PM: The Red Clay Strays<br>9:30 – 11:00 PM: Goose` ,
+    saturday: `2:15 – 3:00 PM: The Sinners and The Aton<br>4:45 – 5:45 PM: Flatland Cavalry<br>5:30 – 6:30 PM: Jessie Murph<br>7:30 – 8:30 PM: Mt. Joy<br>8:45 – 9:45 PM: Claptone<br>10:00 – 11:00 PM: RL Grime` ,
+    sunday: `1:15 – 2:00 PM: Alexandra Kay<br>2:45 – 3:45 PM: Treaty Oak Revival<br>4:30 – 5:30 PM: Royel Otis<br>6:15 – 7:15 PM: King Gizzard & The Lizard Wizard<br>8:15 – 9:30 PM: Queens of the Stone Age`
+  },
+  otherStage: {
+    thursday: `5:15 – 6:15 PM: Azzecca<br>6:30 – 7:30 PM: Max Styler<br>7:45 – 8:45 PM: Green Velvet<br>9:00 – 10:00 PM: Sammy Virji<br>11:00 – 1:00 AM: Dom Dolla`,
+    friday: `4:00 – 5:00 PM: Effin<br>5:15 – 6:15 PM: Eater<br>6:30 – 7:30 PM: Detox Unit<br>7:45 – 8:45 PM: Levity<br>9:00 – 10:00 PM: Inzo<br>10:15 – 11:15 PM: Tape B<br>12:30 – 1:45 AM: Glass Animals`,
+    saturday: `3:45 – 4:45 PM: Ahee<br>5:00 – 6:00 PM: Rossy<br>7:30 – 8:30 PM: Jade Cicada<br>8:30 – 9:30 PM: Levity<br>10:00 – 11:00 PM: RL Grime<br>12:30 – 1:45 AM: Crankdat<br>2:15 – 5:15 AM: Gorgon City`,
+    sunday: `1:45 – 2:45 PM: YDG<br>3:00 – 4:00 PM: Gorillatl<br>4:15 – 5:15 PM: Zingara<br>5:30 – 6:30 PM: Atliens<br>6:45 – 7:45 PM: Big Gigantic<br>8:15 – 9:30 PM: LSZEE<br>9:45 – 10:45 PM: Washed Out`
+  },
+  infinityStage: {
+    thursday: `3:15 – 4:15 PM: DJ Python<br>5:30 – 6:30 PM: Tinzo + Jojo<br>7:00 – 8:00 PM: Parisi<br>8:30 – 9:30 PM: Of The Trees B2B Tape B<br>1:00 – 2:00 AM: Tractorbeam`,
+    friday: `1:45 – 2:30 PM: Airrica<br>3:15 – 4:00 PM: Kamino<br>5:15 – 6:15 PM: Omnom<br>6:30 – 7:30 PM: AYBO<br>7:45 – 8:45 PM: Levity<br>9:00 – 10:00 PM: Inzo<br>10:15 – 11:15 PM: Tape B<br>1:30 – 3:00 AM: John Summit`,
+    saturday: `1:30 – 2:15 PM: Melt<br>3:00 – 3:45 PM: Cameron Winter<br>5:00 – 5:30 PM: Mary Droppinz<br>6:30 – 7:30 PM: Big Gigantic (DJ Set)<br>8:30 – 9:30 PM: Levity<br>11:00 – 12:00 AM: Saxsquatch`,
+    sunday: `2:00 – 2:45 PM: Photay<br>3:45 – 4:30 PM: Post Sex Nachos<br>5:30 – 6:15 PM: Arooj Aftab<br>7:15 – 8:15 PM: Zingara`
+  },
+  thisTent: {
+    thursday: `3:00 – 3:45 PM: Die Spitz<br>4:15 – 5:15 PM: Kitchen Dwellers<br>6:00 – 7:00 PM: The Lemon Twigs<br>7:45 – 8:45 PM: Dogs In A Pile<br>10:00 – 11:00 PM: Rebecca Black<br>12:30 – 1:30 AM: Insane Clown Posse`,
+    friday: `1:00 – 1:45 PM: Bebe Stockwell<br>2:45 – 3:30 PM: Cults<br>5:15 – 6:15 PM: MJ Lenderman<br>7:00 – 9:00 PM: King Gizzard<br>9:45 – 10:45 PM: Marina<br>12:30 – 1:45 AM: JPEGMAFIA`,
+    saturday: `2:00 – 2:45 PM: The Stews<br>3:30 – 4:15 PM: Ziggy Alberts<br>5:00 – 6:00 PM: Dope Lemon<br>6:45 – 7:45 PM: Wave to Earth<br>8:45 – 10:15 PM: Renée Rapp's Superjam<br>10:30 – 12:00 AM: Modest Mouse`,
+    sunday: `1:15 – 2:00 PM: Goldie Boutilier<br>2:45 – 3:30 PM: Natasha Bedingfield<br>4:15 – 5:15 PM: Saint Motel<br>6:00 – 7:00 PM: Barry Can't Swim<br>7:45 – 8:45 PM: Glorilla`
+  },
+  thatTent: {
+    thursday: `3:15 – 4:00 PM: The Dropptines<br>4:45 – 5:30 PM: Sofia Isella<br>6:15 – 7:00 PM: Hey, Nothing<br>7:45 – 8:45 PM: Wisp<br>10:00 – 11:00 PM: 2Hollis<br>12:15 – 1:15 AM: Joey Valence & Brae`,
+    friday: `1:30 – 2:15 PM: Ginger Root<br>2:30 – 3:00 PM: Leon Thomas<br>4:00 – 5:00 PM: Mannequin Pussy<br>5:45 – 6:45 PM: Bossman Dlow<br>7:30 – 8:30 PM: Damiano David<br>9:30 – 10:45 PM: Rainbow Kitten Surprise<br>12:00 – 1:15 AM: Megadeth`,
+    saturday: `1:30 – 2:15 PM: Destroy Boys<br>2:45 – 3:30 PM: Dadi Freyr<br>4:30 – 5:30 PM: Hot Mulligan<br>5:45 – 6:45 PM: Action Bronson<br>7:30 – 8:30 PM: Tyla<br>10:15 – 11:30 PM: Arcade Fire presents \"Santa Parita\"`,
+    sunday: `1:30 – 2:15 PM: Grace Bowers<br>3:00 – 3:45 PM: Alex Warren<br>4:30 – 5:30 PM: Bilmuri<br>6:15 – 7:15 PM: Jack's Mannequin<br>8:00 – 9:15 PM: Dispatch`
+  }
+};
+
+function setDay(day) {
+  currentDay = day;
+  
+  // Update active button styles
+  document.querySelectorAll('.day-selector button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.getElementById(`btn-${day}`).classList.add('active');
+  
+  updateTimeDisplay();
+  updateCurrentArtists();
+  generateFullSchedule();
+  updateStageIndicators();
+}
+
+function setTime(time) {
+  currentTime = time;
+  updateTimeDisplay();
+  updateTimeSlider();
+  updateCurrentArtists();
+  highlightCurrentArtists();
+  updateStageIndicators();
+}
+
+function updateTimeDisplay() {
+  document.getElementById('current-time-display').textContent = 
+    capitalize(currentDay) + ' ' + formatTime(currentTime);
+}
+
+function showStageTooltip(stageKey, stageName) {
+  const stageElement = document.querySelector(`[data-stage="${stageKey}"]`);
+  const tooltip = document.getElementById(`tooltip-${stageKey}`);
+  
+  if (!stageElement || !tooltip) return;
+
+  // Position the tooltip above the center of the stage
+  const stageBounds = stageElement.getBoundingClientRect();
+  const containerBounds = document.querySelector('.container').getBoundingClientRect();
+  
+  const stageWidth = stageBounds.width;
+  const stageCenterX = stageBounds.left - containerBounds.left + (stageWidth / 2);
+  const stageTop = stageBounds.top - containerBounds.top;
+  
+  tooltip.style.left = `${stageCenterX}px`;
+  tooltip.style.top = `${stageTop}px`;
+  
+  const schedule = schedules[stageKey][currentDay] || 'No schedule available';
+  
+  // Get current playing artist if any
+  const currentArtist = getCurrentArtistForStage(stageKey);
+  
+  let tooltipContent = `<strong>${stageName} – ${capitalize(currentDay)}</strong><br>`;
+  
+  if (currentArtist) {
+    tooltipContent += `<div class="current-artist">★ NOW PLAYING: ${currentArtist.artist} ★</div>
+                      <hr style="border-color: #333;">`;
+  }
+  
+  tooltipContent += schedule;
+  tooltip.innerHTML = tooltipContent;
+  tooltip.style.display = 'block';
+}
+
+function hideStageTooltip(stageKey) {
+  const tooltip = document.getElementById(`tooltip-${stageKey}`);
+  if (tooltip) {
+    tooltip.style.display = 'none';
+  }
+}
+
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function formatTime(time24h) {
+  // If already in 12h format (contains AM/PM), return as is
+  if (time24h.includes('AM') || time24h.includes('PM')) {
+    return time24h;
+  }
+  
+  // Convert 24h to 12h format
+  const [hours, minutes] = time24h.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
+function parse12hTime(time12h) {
+  // Extract hours, minutes, and period from format like "5:45 PM" or "12:30 AM"
+  let cleanTime = time12h.trim();
+  // Handle case where AM/PM might be missing
+  if (!cleanTime.includes('AM') && !cleanTime.includes('PM')) {
+    // Default to PM for festival times if between 1-11
+    const hour = parseInt(cleanTime.split(':')[0]);
+    if (hour >= 1 && hour < 12) {
+      cleanTime += ' PM';
+    } else {
+      cleanTime += ' AM';
+    }
+  }
+  
+  const match = cleanTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!match) return null;
+  
+  let [, hours, minutes, period] = match;
+  hours = parseInt(hours);
+  minutes = parseInt(minutes);
+  
+  // Convert to 24h format
+  if (period.toUpperCase() === 'PM' && hours < 12) hours += 12;
+  if (period.toUpperCase() === 'AM' && hours === 12) hours = 0;
+  
+  return {
+    hours,
+    minutes,
+    // Return time in 24h format HH:MM
+    time24h: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+  };
+}
+
+function timeInRange(targetTime, startTime, endTime) {
+  // This is a more robust time comparison function
+  
+  // First, ensure we have proper AM/PM designation for startTime and endTime
+  // These come from the schedule and might be like "5:45" or "5:45 PM"
+  let start = startTime.trim();
+  let end = endTime.trim();
+  
+  // If AM/PM is missing from start time but present in end time, extract and apply to start
+  if (!start.includes('AM') && !start.includes('PM') && 
+      (end.includes('AM') || end.includes('PM'))) {
+    const endPeriod = end.includes('AM') ? 'AM' : 'PM';
+    start = start + ' ' + endPeriod;
+  } 
+  // If no AM/PM in either, most festival times are PM
+  else if (!start.includes('AM') && !start.includes('PM')) {
+    const hour = parseInt(start.split(':')[0]);
+    start += (hour >= 1 && hour < 12) ? ' PM' : ' AM';
+  }
+  
+  if (!end.includes('AM') && !end.includes('PM')) {
+    const hour = parseInt(end.split(':')[0]);
+    end += (hour >= 1 && hour < 12) ? ' PM' : ' AM';
+  }
+  
+  // Convert all times to 24h format
+  let target24h;
+  if (targetTime.includes('AM') || targetTime.includes('PM')) {
+    target24h = parse12hTime(targetTime).time24h;
+  } else {
+    // targetTime is already 24h format (like "17:00")
+    target24h = targetTime;
+  }
+  
+  const start24h = parse12hTime(start).time24h;
+  const end24h = parse12hTime(end).time24h;
+  
+  // Convert to minutes since midnight for easy comparison
+  const toMinutes = t => {
+    const [h, m] = t.split(':').map(Number);
+    return h * 60 + m;
+  };
+  
+  let targetMin = toMinutes(target24h);
+  let startMin = toMinutes(start24h);
+  let endMin = toMinutes(end24h);
+  
+  // Handle times that cross midnight (e.g., 11:00 PM to 1:00 AM)
+  if (endMin < startMin) {
+    endMin += 24 * 60; // Add 24 hours in minutes
+    if (targetMin < startMin) {
+      targetMin += 24 * 60; // If target is after midnight too
+    }
+  }
+  
+  return targetMin >= startMin && targetMin <= endMin;
+}
+
+function getCurrentArtistForStage(stageKey) {
+  const rawSchedule = schedules[stageKey][currentDay] || '';
+  
+  if (!rawSchedule.includes('–')) return null;
+  
+  let currentArtist = null;
+  
+  // Parse each line of the schedule to find current artist
+  rawSchedule.split('<br>').forEach(line => {
+    // Improved regex that properly handles time formats like "5:45 – 6:30 PM: Wilderado"
+    // or "12:30 – 1:45 AM: JPEGMAFIA"
+    const timeMatch = line.match(/^([\d:]+)\s*[–-]\s*([\d:]+\s*(?:AM|PM)):\s*(.+)$/i);
+    if (!timeMatch) return;
+    
+    const [, startRaw, endWithPeriod, artist] = timeMatch;
+    
+    // Extract the period (AM/PM) from the end time
+    const periodMatch = endWithPeriod.match(/(AM|PM)/i);
+    const period = periodMatch ? periodMatch[0] : 'PM'; // Default to PM if not specified
+    
+    // Create full time strings with proper AM/PM
+    let start = startRaw.trim();
+    let end = endWithPeriod.trim();
+    
+    // If start doesn't have AM/PM, add the same as end
+    if (!start.includes('AM') && !start.includes('PM')) {
+      start += ' ' + period;
+    }
+    
+    // Check if current time is in this range
+    if (timeInRange(currentTime, start, end)) {
+      currentArtist = {
+        time: `${start} - ${end}`,
+        artist: artist.trim()
+      };
+    }
+  });
+  
+  return currentArtist;
+}
+
+// Update stage indicators to show which stages have performances happening
+function updateStageIndicators() {
+  // First, hide all indicators
+  document.querySelectorAll('.stage-indicator').forEach(indicator => {
+    indicator.style.display = 'none';
+    // Remove any existing artist name elements
+    while (indicator.firstChild) {
+      indicator.removeChild(indicator.firstChild);
+    }
+  });
+  
+  // Check each stage for current performances
+  for (const stageKey of Object.keys(stageNames)) {
+    const currentArtist = getCurrentArtistForStage(stageKey);
+    
+    if (currentArtist) {
+      const indicator = document.getElementById(`${stageKey}-indicator`);
+      
+      // Create artist name element
+      const artistNameEl = document.createElement('div');
+      artistNameEl.className = 'artist-name';
+      artistNameEl.textContent = currentArtist.artist;
+      
+      // Add it to the indicator and show it
+      indicator.appendChild(artistNameEl);
+      indicator.style.display = 'block';
+    }
+  }
+}
+
+// Timeline functionality
+const START_HOUR = 12; // 12 PM
+const END_HOUR = 27; // 3 AM next day (27 = 24 + 3)
+const TOTAL_HOURS = END_HOUR - START_HOUR;
+
+function initializeTimeline() {
+  const markers = document.getElementById('timeline-markers');
+  markers.innerHTML = '';
+  
+  // Add hour markers
+  for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+    const displayHour = hour % 24;
+    const ampm = displayHour >= 12 ? 'PM' : 'AM';
+    const display12Hour = displayHour % 12 || 12;
+    
+    const position = ((hour - START_HOUR) / TOTAL_HOURS) * 100;
+    
+    const hourMarker = document.createElement('div');
+    hourMarker.className = 'timeline-hour';
+    hourMarker.textContent = `${display12Hour}${ampm}`;
+    hourMarker.style.left = `${position}%`;
+    
+    const tick = document.createElement('div');
+    tick.className = 'timeline-tick';
+    tick.style.left = `${position}%`;
+    
+    markers.appendChild(hourMarker);
+    markers.appendChild(tick);
+  }
+  
+  // Initialize slider position
+  updateTimeSlider();
+  
+  // Make slider draggable for both mouse and touch
+  const slider = document.getElementById('timeline-slider');
+  let isDragging = false;
+  
+  // Mouse events
+  slider.addEventListener('mousedown', () => {
+    isDragging = true;
+  });
+  
+  document.addEventListener('mousemove', handleDrag);
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+  
+  // Touch events
+  slider.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    e.preventDefault();
+  });
+  
+  document.addEventListener('touchmove', (e) => {
+    if (isDragging) {
+      const touch = e.touches[0];
+      handleDragTouch(touch);
+      e.preventDefault();
+    }
+  });
+  
+  document.addEventListener('touchend', () => {
+    isDragging = false;
+  });
+  
+  function handleDrag(e) {
+    if (!isDragging) return;
+    
+    const timeline = document.querySelector('.timeline');
+    const rect = timeline.getBoundingClientRect();
+    
+    let position = (e.clientX - rect.left) / rect.width;
+    updateSliderPosition(position);
+  }
+  
+  function handleDragTouch(touch) {
+    const timeline = document.querySelector('.timeline');
+    const rect = timeline.getBoundingClientRect();
+    
+    let position = (touch.clientX - rect.left) / rect.width;
+    updateSliderPosition(position);
+  }
+  
+  function updateSliderPosition(position) {
+    position = Math.max(0, Math.min(1, position));
+    
+    slider.style.left = `${position * 100}%`;
+    
+    // Convert position to time
+    const totalMinutes = TOTAL_HOURS * 60 * position;
+    const hour = Math.floor(totalMinutes / 60) + START_HOUR;
+    const minute = Math.floor(totalMinutes % 60);
+    
+    const timeString = `${hour % 24 < 10 ? '0' : ''}${hour % 24}:${minute < 10 ? '0' : ''}${minute}`;
+    
+    // Only update if time has changed
+    if (timeString !== currentTime) {
+      currentTime = timeString;
+      document.getElementById('timeRange').value = currentTime;
+      updateTimeDisplay();
+      updateCurrentArtists();
+      highlightCurrentArtists();
+      updateStageIndicators();
+    }
+  }
+  
+  // Make timeline clickable/tappable
+  const timeline = document.querySelector('.timeline');
+  
+  timeline.addEventListener('click', (e) => {
+    const rect = timeline.getBoundingClientRect();
+    let position = (e.clientX - rect.left) / rect.width;
+    updateSliderPosition(position);
+  });
+  
+  timeline.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const rect = timeline.getBoundingClientRect();
+    let position = (touch.clientX - rect.left) / rect.width;
+    updateSliderPosition(position);
+    e.preventDefault();
+  });
+}
+
+function updateTimeSlider() {
+  const parsedTime = currentTime.includes(':') ? currentTime.split(':').map(Number) : [0, 0];
+  const [hours, minutes] = parsedTime;
+  let totalHours = hours + minutes / 60;
+  
+  // Handle after-midnight times
+  if (totalHours < START_HOUR) {
+    totalHours += 24;
+  }
+  
+  const position = (totalHours - START_HOUR) / TOTAL_HOURS;
+  const slider = document.getElementById('timeline-slider');
+  slider.style.left = `${Math.max(0, Math.min(100, position * 100))}%`;
+}
+
+function updateCurrentArtists() {
+  const artistsList = document.getElementById('artists-list');
+  artistsList.innerHTML = '';
+  
+  // Check all stages for current performances
+  let foundArtists = false;
+  
+  for (const [stageKey, stageName] of Object.entries(stageNames)) {
+    const currentArtist = getCurrentArtistForStage(stageKey);
+    
+    if (currentArtist) {
+      foundArtists = true;
+      const artistCard = document.createElement('div');
+      artistCard.className = 'artist-card';
+      artistCard.innerHTML = `
+        <div>
+          <span class="artist-name">${currentArtist.artist}</span>
+          <span class="artist-stage"> @ ${stageName}</span>
+        </div>
+        <div class="artist-time">${currentArtist.time}</div>
+      `;
+      artistsList.appendChild(artistCard);
+    }
+  }
+  
+  if (!foundArtists) {
+    artistsList.innerHTML = '<div class="artist-card">No artists performing at this time</div>';
+  }
+}
+
+// Generate the full schedule for the current day
+function generateFullSchedule() {
+  const scheduleGrid = document.getElementById('full-schedule-grid');
+  scheduleGrid.innerHTML = '';
+  
+  for (const [stageKey, stageName] of Object.entries(stageNames)) {
+    const stageSchedule = document.createElement('div');
+    stageSchedule.className = 'stage-schedule';
+    
+    const stageTitle = document.createElement('h3');
+    stageTitle.textContent = stageName;
+    stageSchedule.appendChild(stageTitle);
+    
+    const rawSchedule = schedules[stageKey][currentDay] || 'No schedule available';
+    
+    if (!rawSchedule.includes('–')) {
+      const noSchedule = document.createElement('div');
+      noSchedule.className = 'artist-slot';
+      noSchedule.textContent = rawSchedule;
+      stageSchedule.appendChild(noSchedule);
+    } else {
+      // Parse schedule
+      const performances = [];
+      
+      rawSchedule.split('<br>').forEach(line => {
+        // Improved regex for better parsing
+        const timeMatch = line.match(/^([\d:]+)\s*[–-]\s*([\d:]+\s*(?:AM|PM)):\s*(.+)$/i);
+        if (!timeMatch) return;
+        
+        const [, startRaw, endWithPeriod, artist] = timeMatch;
+        
+        // Extract the period (AM/PM) from the end time
+        const periodMatch = endWithPeriod.match(/(AM|PM)/i);
+        const period = periodMatch ? periodMatch[0] : 'PM'; // Default to PM if not specified
+        
+        // Create full time strings with proper AM/PM
+        let start = startRaw.trim();
+        let end = endWithPeriod.trim();
+        
+        // If start doesn't have AM/PM, add the same as end
+        if (!start.includes('AM') && !start.includes('PM')) {
+          start += ' ' + period;
+        }
+        
+        performances.push({ 
+          start, 
+          end, 
+          timeRange: `${start} - ${end}`, 
+          artist: artist.trim() 
+        });
+      });
+      
+      // Sort by start time
+      performances.sort((a, b) => {
+        const aTime = parse12hTime(a.start);
+        const bTime = parse12hTime(b.start);
+        
+        if (!aTime || !bTime) return 0;
+        
+        // Convert to minutes for comparison
+        const aMinutes = aTime.hours * 60 + aTime.minutes;
+        const bMinutes = bTime.hours * 60 + bTime.minutes;
+        
+        return aMinutes - bMinutes;
+      });
+      
+      // Create slot for each performance
+      performances.forEach(perf => {
+        const artistId = `${stageKey}-${perf.artist.replace(/\s+/g, '-')}`;
+        
+        const slot = document.createElement('div');
+        slot.className = 'artist-slot';
+        slot.id = artistId;
+        slot.dataset.start = perf.start;
+        slot.dataset.end = perf.end;
+        
+        const artistName = document.createElement('div');
+        artistName.className = 'artist-name';
+        artistName.textContent = perf.artist;
+        
+        const timeSlot = document.createElement('div');
+        timeSlot.className = 'artist-time-slot';
+        timeSlot.textContent = perf.timeRange;
+        
+        slot.appendChild(artistName);
+        slot.appendChild(timeSlot);
+        stageSchedule.appendChild(slot);
+      });
+    }
+    
+    scheduleGrid.appendChild(stageSchedule);
+  }
+  
+  // Highlight current performances
+  highlightCurrentArtists();
+}
+
+// Highlight performances happening at the current time
+function highlightCurrentArtists() {
+  // Clear all highlights first
+  document.querySelectorAll('.artist-slot').forEach(slot => {
+    slot.classList.remove('current');
+  });
+  
+  // Add highlight to current performances
+  document.querySelectorAll('.artist-slot').forEach(slot => {
+    if (slot.dataset.start && slot.dataset.end) {
+      if (timeInRange(currentTime, slot.dataset.start, slot.dataset.end)) {
+        slot.classList.add('current');
+      }
+    }
+  });
+}
+
+// Initialize on load
+window.onload = function() {
+  // Set active day button
+  document.getElementById(`btn-${currentDay}`).classList.add('active');
+  
+  // Initialize stage hover/touch behavior
+  document.querySelectorAll('.stage').forEach(stage => {
+    const stageKey = stage.dataset.stage;
+    const stageName = stage.dataset.name;
+    
+    // For desktop
+    stage.addEventListener('mouseenter', () => {
+      showStageTooltip(stageKey, stageName);
+    });
+    
+    stage.addEventListener('mouseleave', () => {
+      hideStageTooltip(stageKey);
+    });
+    
+    // For mobile - show tooltip on tap, hide when tapping elsewhere
+    stage.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      showStageTooltip(stageKey, stageName);
+      
+      // Create one-time event listener to hide tooltip when tapping elsewhere
+      const hideOnTapOutside = (e) => {
+        if (!stage.contains(e.target)) {
+          hideStageTooltip(stageKey);
+          document.removeEventListener('touchstart', hideOnTapOutside);
+        }
+      };
+      
+      // Add the listener after a small delay to prevent immediate triggering
+      setTimeout(() => {
+        document.addEventListener('touchstart', hideOnTapOutside);
+      }, 10);
+    });
+  });
+  
+  initializeTimeline();
+  updateTimeDisplay();
+  updateCurrentArtists();
+  generateFullSchedule();
+  updateStageIndicators();
+};
+</script>
+
+</body>
+</html>
