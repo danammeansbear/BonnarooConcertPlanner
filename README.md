@@ -1,3 +1,10 @@
+![image](https://github.com/user-attachments/assets/c333fe14-cdce-443a-a874-7a8405b43adf)
+
+
+
+
+
+
 # 🎪 Bonnaroo Interactive Map – Offline Edition
 
 This is an offline-ready HTML page that lets you interact with the Bonnaroo 2025 map, hover over stages, and explore artist schedules hour by hour using a draggable timeline slider.
