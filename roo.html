@@ -2,157 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bonnaroo Interactive Map</title>
   <style>
     body {
       margin: 0;
+      padding: 0;
       background: #000;
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       color: white;
+      font-size: 16px;
+      overflow-x: hidden;
     }
     
-    /* YouTube video background */
-    .video-background {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-      pointer-events: none;
-      overflow: hidden;
-    }
-    
-    #youtube-player {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      min-width: 100%;
-      min-height: 100%;
-      width: auto;
-      height: auto;
-      opacity: 0.3; /* Make video subtle so content remains readable */
-    }
-    
-    /* Rainbow animation for all highlighted elements */
-    @keyframes rainbow {
-      0% { color: #ff0000; } /* Red */
-      14% { color: #ff7f00; } /* Orange */
-      28% { color: #ffff00; } /* Yellow */
-      42% { color: #00ff00; } /* Green */
-      56% { color: #0000ff; } /* Blue */
-      70% { color: #4b0082; } /* Indigo */
-      85% { color: #9400d3; } /* Violet */
-      100% { color: #ff0000; } /* Back to Red */
-    }
-    
-    @keyframes rainbowBorder {
-      0% { border-color: #ff0000; } /* Red */
-      14% { border-color: #ff7f00; } /* Orange */
-      28% { border-color: #ffff00; } /* Yellow */
-      42% { border-color: #00ff00; } /* Green */
-      56% { border-color: #0000ff; } /* Blue */
-      70% { border-color: #4b0082; } /* Indigo */
-      85% { border-color: #9400d3; } /* Violet */
-      100% { border-color: #ff0000; } /* Back to Red */
-    }
-    
-    @keyframes rainbowBackground {
-      0% { background-color: rgba(255, 0, 0, 0.2); } /* Red */
-      14% { background-color: rgba(255, 127, 0, 0.2); } /* Orange */
-      28% { background-color: rgba(255, 255, 0, 0.2); } /* Yellow */
-      42% { background-color: rgba(0, 255, 0, 0.2); } /* Green */
-      56% { background-color: rgba(0, 0, 255, 0.2); } /* Blue */
-      70% { background-color: rgba(75, 0, 130, 0.2); } /* Indigo */
-      85% { background-color: rgba(148, 0, 211, 0.2); } /* Violet */
-      100% { background-color: rgba(255, 0, 0, 0.2); } /* Back to Red */
-    }
-    
-    @keyframes rainbowGlow {
-      0% { box-shadow: 0 0 15px #ff0000; } /* Red */
-      14% { box-shadow: 0 0 15px #ff7f00; } /* Orange */
-      28% { box-shadow: 0 0 15px #ffff00; } /* Yellow */
-      42% { box-shadow: 0 0 15px #00ff00; } /* Green */
-      56% { box-shadow: 0 0 15px #0000ff; } /* Blue */
-      70% { box-shadow: 0 0 15px #4b0082; } /* Indigo */
-      85% { box-shadow: 0 0 15px #9400d3; } /* Violet */
-      100% { box-shadow: 0 0 15px #ff0000; } /* Back to Red */
-    }
-    
-    /* Main layout with side-by-side columns */
+    /* Main layout - mobile first */
     .main-container {
       display: flex;
-      max-width: 1800px;
+      flex-direction: column;
       margin: 0 auto;
-      gap: 20px;
-      padding: 10px;
+      padding: 5px;
+      max-width: 100%;
     }
     
     .map-column {
-      flex: 0 0 auto;
-      max-width: 65%;
       position: relative;
+      width: 100%;
+      margin-bottom: 15px;
     }
     
     .info-column {
-      flex: 1;
+      width: 100%;
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      max-height: 100vh;
-      overflow-y: auto;
-      padding-right: 10px;
+      gap: 10px;
     }
     
     .container {
       position: relative;
-      display: inline-block;
+      width: 100%;
     }
     
     .map-img {
       width: 100%;
-      max-width: 1200px;
       display: block;
+      max-width: 100%;
     }
     
     .stage {
       position: absolute;
       cursor: pointer;
-      background-color: rgba(255, 255, 255, 0.1);
-      border: 1px dashed;
-      animation: rainbowBorder 10s linear infinite;
+      background-color: rgba(0, 128, 0, 0.2);
+      border: 1px dashed #00ff00;
     }
     
     /* Stage performance indicator */
     .stage-indicator {
       position: absolute;
       display: none;
-      background-color: rgba(255, 255, 255, 0.2);
-      border: 2px solid;
+      background-color: rgba(0, 128, 0, 0.2);
+      border: 2px solid #00ff00;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 30px;
+      height: 30px;
       transform: translate(-50%, -50%);
       z-index: 5;
-      animation: rainbowBorder 10s linear infinite, rainbowGlow 10s linear infinite, pulse 2s infinite;
+      box-shadow: 0 0 10px #00ff00;
     }
     
     .stage-indicator .artist-name {
       position: absolute;
       background: rgba(0, 0, 0, 0.8);
-      padding: 5px 10px;
+      padding: 4px 8px;
       border-radius: 4px;
-      font-size: 12px;
+      font-size: 10px;
       white-space: nowrap;
-      top: -30px;
+      top: -28px;
       left: 50%;
       transform: translateX(-50%);
-      border: 1px solid;
-      animation: rainbow 10s linear infinite, rainbowBorder 10s linear infinite;
+      border: 1px solid #00ff00;
+      color: #00ff00;
       font-weight: bold;
-      letter-spacing: 0.5px;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
     @keyframes pulse {
@@ -161,21 +93,24 @@
       100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.9); }
     }
     
+    .stage-indicator {
+      animation: pulse 2s infinite;
+    }
+    
     .tooltip {
       display: none;
-      position: absolute;
+      position: fixed;
       background-color: rgba(0, 0, 0, 0.9);
-      border: 1px solid;
+      border: 1px solid #00ff00;
       padding: 10px;
       border-radius: 5px;
       font-size: 14px;
-      max-width: 300px;
-      min-width: 200px;
-      z-index: 20;
-      top: 0;
-      left: 0;
-      transform: translate(-50%, -110%);
-      animation: rainbowBorder 10s linear infinite, rainbowGlow 10s linear infinite;
+      max-width: 280px;
+      z-index: 100;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 50px;
+      box-shadow: 0 0 10px rgba(0, 128, 0, 0.5);
     }
     
     .tooltip .current-artist {
@@ -184,45 +119,23 @@
       padding: 8px;
       margin: 5px 0;
       border-radius: 5px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(0, 128, 0, 0.2);
       text-align: center;
-      animation: rainbowBackground 10s linear infinite, rainbow 10s linear infinite;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 1);
-      letter-spacing: 0.5px;
+      color: #00ff00;
     }
     
-    /* Small arrow pointing to the stage */
-    .tooltip:after {
-      content: "";
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      margin-left: -10px;
-      border-width: 10px 10px 0;
-      border-style: solid;
-      animation: rainbowBorderArrow 10s linear infinite;
-    }
-    
-    @keyframes rainbowBorderArrow {
-      0% { border-color: #ff0000 transparent transparent transparent; } /* Red */
-      14% { border-color: #ff7f00 transparent transparent transparent; } /* Orange */
-      28% { border-color: #ffff00 transparent transparent transparent; } /* Yellow */
-      42% { border-color: #00ff00 transparent transparent transparent; } /* Green */
-      56% { border-color: #0000ff transparent transparent transparent; } /* Blue */
-      70% { border-color: #4b0082 transparent transparent transparent; } /* Indigo */
-      85% { border-color: #9400d3 transparent transparent transparent; } /* Violet */
-      100% { border-color: #ff0000 transparent transparent transparent; } /* Back to Red */
-    }
-    
-    .day-selector, .time-selector {
-      padding: 10px;
+    .day-selector {
+      padding: 10px 5px;
       text-align: center;
+      display: flex;
+      justify-content: space-between;
     }
     
     .day-selector button {
-      margin: 0 5px;
-      padding: 8px 14px;
+      padding: 8px 0;
       font-size: 14px;
+      flex: 1;
+      margin: 0 2px;
       cursor: pointer;
       background: #222;
       color: white;
@@ -232,24 +145,39 @@
     
     .day-selector button.active {
       background: #111;
-      color: white;
-      border: 1px solid;
-      animation: rainbowBorder 10s linear infinite, rainbow 10s linear infinite;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+    }
+    
+    .time-selector {
+      padding: 10px 5px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .time-selector label {
+      margin-right: 10px;
     }
     
     input[type="time"] {
-      padding: 6px;
-      font-size: 14px;
+      padding: 8px;
+      font-size: 16px;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 4px;
     }
     
     /* Timeline styles */
     .timeline-container {
       position: relative;
       width: 100%;
-      height: 80px;
+      height: 70px;
       background: #111;
       border-radius: 8px;
-      padding: 10px;
+      padding: 8px;
       box-sizing: border-box;
     }
     
@@ -259,22 +187,18 @@
       height: 20px;
       background: #333;
       border-radius: 10px;
-      margin-top: 15px;
+      margin-top: 12px;
     }
     
     .timeline-slider {
       position: absolute;
-      width: 10px;
+      width: 15px;
       height: 30px;
       top: -5px;
+      background-color: rgba(0, 128, 0, 0.5);
       border-radius: 3px;
-      cursor: grab;
+      cursor: pointer;
       transform: translateX(-50%);
-      animation: rainbowBackground 10s linear infinite;
-    }
-    
-    .timeline-slider:active {
-      cursor: grabbing;
     }
     
     .timeline-markers {
@@ -285,11 +209,12 @@
       justify-content: space-between;
       padding: 0 10px;
       box-sizing: border-box;
+      overflow: hidden;
     }
     
     .timeline-hour {
       position: absolute;
-      font-size: 12px;
+      font-size: 10px;
       color: #aaa;
       transform: translateX(-50%);
     }
@@ -305,9 +230,9 @@
     
     .time-display {
       text-align: center;
-      font-size: 18px;
-      margin-bottom: 10px;
-      animation: rainbow 10s linear infinite;
+      font-size: 16px;
+      margin-bottom: 5px;
+      color: #00ff00;
       font-weight: bold;
     }
     
@@ -315,94 +240,90 @@
     .current-artists {
       background: #111;
       border-radius: 8px;
-      padding: 15px;
+      padding: 10px;
     }
     
     .current-artists h2 {
       margin-top: 0;
+      margin-bottom: 10px;
       text-align: center;
-      animation: rainbow 10s linear infinite;
+      font-size: 18px;
+      color: #00ff00;
     }
     
     .artist-card {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(0, 128, 0, 0.1);
       border-radius: 5px;
       padding: 10px;
       margin: 5px 0;
       display: flex;
       justify-content: space-between;
-      border-left: 3px solid;
-      animation: rainbowBorder 10s linear infinite;
+      border-left: 3px solid #00ff00;
     }
     
     .artist-stage {
       font-weight: bold;
-      animation: rainbow 10s linear infinite;
+      color: #00ff00;
     }
     
     .artist-time {
       color: #aaa;
+      font-size: 12px;
     }
     
     /* Full Schedule Display */
     .full-schedule {
       background: #111;
       border-radius: 8px;
-      padding: 15px;
-      overflow-y: auto;
-      flex-grow: 1;
+      padding: 10px;
+      margin-bottom: 20px;
+      max-height: none; /* Remove max-height restriction */
     }
     
     .full-schedule h2 {
       text-align: center;
       margin-top: 0;
-      animation: rainbow 10s linear infinite;
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #00ff00;
     }
     
     .stages-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 15px;
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
     
     .stage-schedule {
       background: #1a1a1a;
       border-radius: 6px;
-      padding: 15px;
+      padding: 10px;
+      margin-bottom: 10px;
     }
     
     .stage-schedule h3 {
       text-align: center;
       margin-top: 0;
-      padding-bottom: 10px;
+      padding-bottom: 8px;
       border-bottom: 1px solid #333;
-      animation: rainbow 10s linear infinite;
+      font-size: 16px;
+      color: #00ff00;
     }
     
     .artist-slot {
       padding: 8px;
       margin: 5px 0;
       border-radius: 4px;
-      transition: background-color 0.3s ease;
     }
     
     .artist-slot.current {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-left: 3px solid;
-      animation: rainbowBorder 10s linear infinite, rainbowBackground 10s linear infinite;
+      background-color: rgba(0, 128, 0, 0.2);
+      border-left: 3px solid #00ff00;
     }
     
     .artist-slot.current .artist-name {
-      animation: rainbow 10s linear infinite;
+      color: #00ff00;
       font-size: 1.1em;
-      letter-spacing: 0.5px;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 3px;
-      margin-bottom: 3px;
-      background-color: rgba(0, 0, 0, 0.3);
-      transform: scale(1.05);
       font-weight: bold;
     }
     
@@ -419,192 +340,53 @@
     .controls-container {
       background: #111;
       border-radius: 8px;
-      padding: 10px;
-      margin-bottom: 15px;
+      padding: 8px;
+      margin-bottom: 10px;
     }
     
-    /* Developer Information Banner */
-    .developer-info {
-      text-align: center;
-      padding: 15px;
-      margin: 20px auto;
-      max-width: 1800px;
-      background: rgba(0, 0, 0, 0.8);
-      border-radius: 8px;
-      border: 1px solid;
-      animation: rainbowBorder 10s linear infinite;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .developer-info::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(45deg, 
-        rgba(255, 0, 0, 0.05) 0%, 
-        rgba(255, 165, 0, 0.05) 14%, 
-        rgba(255, 255, 0, 0.05) 28%, 
-        rgba(0, 128, 0, 0.05) 42%, 
-        rgba(0, 0, 255, 0.05) 56%, 
-        rgba(75, 0, 130, 0.05) 70%, 
-        rgba(143, 0, 255, 0.05) 85%, 
-        rgba(255, 0, 0, 0.05) 100%
-      );
-      z-index: 0;
-    }
-    
-    .developer-info h2 {
-      animation: rainbow 10s linear infinite;
-      position: relative;
-      z-index: 1;
-      font-size: 24px;
-      margin-top: 0;
-    }
-    
-    .developer-info p {
-      position: relative;
-      z-index: 1;
-      margin: 10px 0;
-      font-size: 16px;
-      line-height: 1.6;
-    }
-    
-    .developer-info .highlight {
-      animation: rainbow 10s linear infinite;
-      font-weight: bold;
-      font-size: 18px;
-    }
-    
-    .developer-info .support-btn {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 10px 20px;
-      background: #111;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      font-size: 16px;
-      cursor: pointer;
-      text-decoration: none;
-      position: relative;
-      z-index: 1;
-      overflow: hidden;
-      animation: rainbowBorder 10s linear infinite;
-      border: 2px solid;
-      transition: transform 0.3s ease;
-    }
-    
-    .developer-info .support-btn:hover {
-      transform: scale(1.05);
-    }
-    
-    .developer-info .support-btn:active {
-      transform: scale(0.95);
-    }
-    
-    /* Audio controls */
-    .audio-controls {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 10px;
-      border-radius: 50px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid;
-      animation: rainbowBorder 10s linear infinite;
-    }
-    
-    .audio-controls button {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      animation: rainbow 10s linear infinite;
-    }
-    
-    .audio-controls button:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .audio-controls .volume-slider {
-      width: 80px;
-      margin: 0 10px;
-    }
-    
-    @media (max-width: 1200px) {
-      .main-container {
-        flex-direction: column;
-      }
-      .map-column, .info-column {
-        max-width: 100%;
-      }
+    /* Adjust stage positions for mobile */
+    .stage, .stage-indicator {
+      transform: scale(0.7);
+      transform-origin: center;
     }
   </style>
 </head>
 <body>
 
-<!-- YouTube video background -->
-<div class="video-background">
-  <div id="youtube-player"></div>
-</div>
-
-<!-- Audio controls -->
-<div class="audio-controls">
-  <button id="toggle-audio" title="Toggle audio">
-    <span id="audio-icon">🔊</span>
-  </button>
-  <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="50">
-</div>
-
 <div class="controls-container">
   <div class="day-selector">
-    <button onclick="setDay('thursday')" id="btn-thursday">Thursday</button>
-    <button onclick="setDay('friday')" id="btn-friday">Friday</button>
-    <button onclick="setDay('saturday')" id="btn-saturday">Saturday</button>
-    <button onclick="setDay('sunday')" id="btn-sunday">Sunday</button>
+    <button onclick="setDay('thursday')" id="btn-thursday">Thurs</button>
+    <button onclick="setDay('friday')" id="btn-friday">Fri</button>
+    <button onclick="setDay('saturday')" id="btn-saturday">Sat</button>
+    <button onclick="setDay('sunday')" id="btn-sunday">Sun</button>
   </div>
   <div class="time-selector">
-    <label for="timeRange">Select Time:</label>
+    <label for="timeRange">Time:</label>
     <input type="time" id="timeRange" value="17:00" step="900" onchange="setTime(this.value)">
   </div>
 </div>
 
 <div class="main-container">
-  <!-- Left column for map -->
+  <!-- Map column -->
   <div class="map-column">
     <div class="container">
       <img src="Roo25_Patron-Map-05.16-Social_Centeroo.png" class="map-img" alt="Bonnaroo Map">
       
       <!-- Stage indicators for active performances -->
-      <div id="whatStage-indicator" class="stage-indicator" style="top: 90px; left: 381px;"></div>
-      <div id="whichStage-indicator" class="stage-indicator" style="top: 160px; left: 622px;"></div>
-      <div id="otherStage-indicator" class="stage-indicator" style="top: 535px; left: 953px;"></div>
-      <div id="infinityStage-indicator" class="stage-indicator" style="top: 157px; left: 1038px;"></div>
-      <div id="thisTent-indicator" class="stage-indicator" style="top: 296px; left: 1013px;"></div>
-      <div id="thatTent-indicator" class="stage-indicator" style="top: 535px; left: 560px;"></div>
+      <div id="whatStage-indicator" class="stage-indicator" style="top: 13%; left: 32%;"></div>
+      <div id="whichStage-indicator" class="stage-indicator" style="top: 22%; left: 52%;"></div>
+      <div id="otherStage-indicator" class="stage-indicator" style="top: 75%; left: 79%;"></div>
+      <div id="infinityStage-indicator" class="stage-indicator" style="top: 22%; left: 86%;"></div>
+      <div id="thisTent-indicator" class="stage-indicator" style="top: 41%; left: 84%;"></div>
+      <div id="thatTent-indicator" class="stage-indicator" style="top: 75%; left: 47%;"></div>
       
-      <!-- Stage areas -->
-      <div class="stage" style="top: 119px; left: 321px; width: 120px; height: 60px;" data-stage="whatStage" data-name="WHAT STAGE"></div>
-      <div class="stage" style="top: 189px; left: 562px; width: 120px; height: 60px;" data-stage="whichStage" data-name="WHICH STAGE"></div>
-      <div class="stage" style="top: 565px; left: 893px; width: 120px; height: 60px;" data-stage="otherStage" data-name="THE OTHER STAGE"></div>
-      <div class="stage" style="top: 187px; left: 978px; width: 120px; height: 60px;" data-stage="infinityStage" data-name="INFINITY STAGE"></div>
-      <div class="stage" style="top: 326px; left: 953px; width: 120px; height: 60px;" data-stage="thisTent" data-name="THIS TENT"></div>
-      <div class="stage" style="top: 565px; left: 500px; width: 120px; height: 60px;" data-stage="thatTent" data-name="THAT TENT"></div>
+      <!-- Stage areas (using percentages for mobile) -->
+      <div class="stage" style="top: 17%; left: 27%; width: 10%; height: 8%;" data-stage="whatStage" data-name="WHAT STAGE"></div>
+      <div class="stage" style="top: 26%; left: 47%; width: 10%; height: 8%;" data-stage="whichStage" data-name="WHICH STAGE"></div>
+      <div class="stage" style="top: 79%; left: 74%; width: 10%; height: 8%;" data-stage="otherStage" data-name="THE OTHER STAGE"></div>
+      <div class="stage" style="top: 26%; left: 81%; width: 10%; height: 8%;" data-stage="infinityStage" data-name="INFINITY STAGE"></div>
+      <div class="stage" style="top: 45%; left: 79%; width: 10%; height: 8%;" data-stage="thisTent" data-name="THIS TENT"></div>
+      <div class="stage" style="top: 79%; left: 42%; width: 10%; height: 8%;" data-stage="thatTent" data-name="THAT TENT"></div>
       
       <!-- Fixed-position tooltips for each stage -->
       <div id="tooltip-whatStage" class="tooltip"></div>
@@ -616,11 +398,11 @@
     </div>
   </div>
   
-  <!-- Right column for schedule information -->
+  <!-- Info column -->
   <div class="info-column">
     <!-- Timeline element -->
     <div class="timeline-container">
-      <div class="time-display" id="current-time-display">Thursday 17:00</div>
+      <div class="time-display" id="current-time-display">Thursday 5:00 PM</div>
       <div class="timeline-markers" id="timeline-markers"></div>
       <div class="timeline">
         <div class="timeline-slider" id="timeline-slider"></div>
@@ -641,16 +423,6 @@
   </div>
 </div>
 
-<!-- Developer Information Section -->
-<div class="developer-info">
-  <h2>Free Interactive Festival Tool</h2>
-  <p>I created this interactive Bonnaroo map and schedule tool to help festival-goers better plan their experience.</p>
-  <p>This tool is <span class="highlight">completely free</span> and will always remain so. No ads, no subscriptions, no tracking.</p>
-  <p>My goal is to make festival navigation easier for everyone. Feel free to share this with fellow Bonnaroovians!</p>
-  <p>If you find this helpful, consider supporting future festival tools and updates.</p>
-  <a href="#" class="support-btn" onclick="alert('Thanks for your interest in supporting! This is just a placeholder for now.')">Support This Project</a>
-</div>
-
 <script>
 let currentDay = 'thursday';
 let currentTime = '17:00';
@@ -662,127 +434,6 @@ const stageNames = {
   'thisTent': 'THIS TENT',
   'thatTent': 'THAT TENT'
 };
-
-// YouTube API setup
-let player;
-let isAudioMuted = false;
-
-// Load YouTube API
-const tag = document.createElement('script');
-tag.src = "https://www.youtube.com/iframe_api";
-const firstScriptTag = document.getElementsByTagName('script')[0];
-firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-// Create YouTube player when API is ready
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('youtube-player', {
-    videoId: 'C6CMhhsHPO8', // The provided YouTube video ID
-    playerVars: {
-      autoplay: 1,
-      controls: 0,
-      disablekb: 1,
-      fs: 0,
-      modestbranding: 1,
-      rel: 0,
-      showinfo: 0,
-      iv_load_policy: 3,
-      loop: 1,
-      playlist: 'C6CMhhsHPO8', // For looping, need to repeat the video ID
-      mute: 0 // Start with audio on as requested
-    },
-    events: {
-      'onReady': onPlayerReady,
-      'onStateChange': onPlayerStateChange,
-      'onError': onPlayerError
-    }
-  });
-}
-
-function onPlayerReady(event) {
-  // Set initial volume to match slider
-  const volume = document.getElementById('volume-slider').value;
-  player.setVolume(volume);
-  
-  // Play video immediately
-  player.playVideo();
-  
-  // Browsers may still mute it automatically, so try to unmute
-  player.unMute();
-  
-  // Update UI
-  updateAudioButton();
-}
-
-function onPlayerStateChange(event) {
-  // If video ends, restart it
-  if (event.data === YT.PlayerState.ENDED) {
-    player.playVideo();
-  }
-  // If video is paused, try to play it
-  else if (event.data === YT.PlayerState.PAUSED) {
-    player.playVideo();
-  }
-}
-
-function onPlayerError(event) {
-  console.log("YouTube player error:", event.data);
-  // Leave the background black as requested if video fails
-  document.querySelector('.video-background').style.display = 'none';
-}
-
-// Audio control functions
-function toggleAudio() {
-  if (player) {
-    if (player.isMuted()) {
-      player.unMute();
-      isAudioMuted = false;
-    } else {
-      player.mute();
-      isAudioMuted = true;
-    }
-    updateAudioButton();
-  }
-}
-
-function updateAudioButton() {
-  const audioIcon = document.getElementById('audio-icon');
-  if (player && player.isMuted()) {
-    audioIcon.textContent = '🔇';
-  } else {
-    audioIcon.textContent = '🔊';
-  }
-}
-
-// Set volume
-function setVolume(value) {
-  if (player) {
-    player.setVolume(value);
-    // If the user increases volume from zero, unmute
-    if (value > 0 && player.isMuted()) {
-      player.unMute();
-      updateAudioButton();
-    }
-  }
-}
-
-// Event listeners for audio controls
-document.addEventListener('DOMContentLoaded', function() {
-  const toggleAudioBtn = document.getElementById('toggle-audio');
-  const volumeSlider = document.getElementById('volume-slider');
-  
-  toggleAudioBtn.addEventListener('click', toggleAudio);
-  volumeSlider.addEventListener('input', function() {
-    setVolume(this.value);
-  });
-  
-  // Try to unmute on first user interaction
-  document.body.addEventListener('click', function() {
-    if (player && player.isMuted()) {
-      player.unMute();
-      updateAudioButton();
-    }
-  }, { once: true });
-});
 
 const schedules = {
   whatStage: {
@@ -826,7 +477,6 @@ const schedules = {
 function setDay(day) {
   currentDay = day;
   
-  // Update active button styles
   document.querySelectorAll('.day-selector button').forEach(btn => {
     btn.classList.remove('active');
   });
@@ -853,21 +503,9 @@ function updateTimeDisplay() {
 }
 
 function showStageTooltip(stageKey, stageName) {
-  const stageElement = document.querySelector(`[data-stage="${stageKey}"]`);
   const tooltip = document.getElementById(`tooltip-${stageKey}`);
   
-  if (!stageElement || !tooltip) return;
-
-  // Position the tooltip above the center of the stage
-  const stageBounds = stageElement.getBoundingClientRect();
-  const containerBounds = document.querySelector('.container').getBoundingClientRect();
-  
-  const stageWidth = stageBounds.width;
-  const stageCenterX = stageBounds.left - containerBounds.left + (stageWidth / 2);
-  const stageTop = stageBounds.top - containerBounds.top;
-  
-  tooltip.style.left = `${stageCenterX}px`;
-  tooltip.style.top = `${stageTop}px`;
+  if (!tooltip) return;
   
   const schedule = schedules[stageKey][currentDay] || 'No schedule available';
   
@@ -898,12 +536,10 @@ function capitalize(word) {
 }
 
 function formatTime(time24h) {
-  // If already in 12h format (contains AM/PM), return as is
   if (time24h.includes('AM') || time24h.includes('PM')) {
     return time24h;
   }
   
-  // Convert 24h to 12h format
   const [hours, minutes] = time24h.split(':').map(Number);
   const period = hours >= 12 ? 'PM' : 'AM';
   const hours12 = hours % 12 || 12;
@@ -911,11 +547,8 @@ function formatTime(time24h) {
 }
 
 function parse12hTime(time12h) {
-  // Extract hours, minutes, and period from format like "5:45 PM" or "12:30 AM"
   let cleanTime = time12h.trim();
-  // Handle case where AM/PM might be missing
   if (!cleanTime.includes('AM') && !cleanTime.includes('PM')) {
-    // Default to PM for festival times if between 1-11
     const hour = parseInt(cleanTime.split(':')[0]);
     if (hour >= 1 && hour < 12) {
       cleanTime += ' PM';
@@ -931,33 +564,25 @@ function parse12hTime(time12h) {
   hours = parseInt(hours);
   minutes = parseInt(minutes);
   
-  // Convert to 24h format
   if (period.toUpperCase() === 'PM' && hours < 12) hours += 12;
   if (period.toUpperCase() === 'AM' && hours === 12) hours = 0;
   
   return {
     hours,
     minutes,
-    // Return time in 24h format HH:MM
     time24h: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
   };
 }
 
 function timeInRange(targetTime, startTime, endTime) {
-  // This is a more robust time comparison function
-  
-  // First, ensure we have proper AM/PM designation for startTime and endTime
-  // These come from the schedule and might be like "5:45" or "5:45 PM"
   let start = startTime.trim();
   let end = endTime.trim();
   
-  // If AM/PM is missing from start time but present in end time, extract and apply to start
   if (!start.includes('AM') && !start.includes('PM') && 
       (end.includes('AM') || end.includes('PM'))) {
     const endPeriod = end.includes('AM') ? 'AM' : 'PM';
     start = start + ' ' + endPeriod;
   } 
-  // If no AM/PM in either, most festival times are PM
   else if (!start.includes('AM') && !start.includes('PM')) {
     const hour = parseInt(start.split(':')[0]);
     start += (hour >= 1 && hour < 12) ? ' PM' : ' AM';
@@ -968,19 +593,16 @@ function timeInRange(targetTime, startTime, endTime) {
     end += (hour >= 1 && hour < 12) ? ' PM' : ' AM';
   }
   
-  // Convert all times to 24h format
   let target24h;
   if (targetTime.includes('AM') || targetTime.includes('PM')) {
     target24h = parse12hTime(targetTime).time24h;
   } else {
-    // targetTime is already 24h format (like "17:00")
     target24h = targetTime;
   }
   
   const start24h = parse12hTime(start).time24h;
   const end24h = parse12hTime(end).time24h;
   
-  // Convert to minutes since midnight for easy comparison
   const toMinutes = t => {
     const [h, m] = t.split(':').map(Number);
     return h * 60 + m;
@@ -990,11 +612,10 @@ function timeInRange(targetTime, startTime, endTime) {
   let startMin = toMinutes(start24h);
   let endMin = toMinutes(end24h);
   
-  // Handle times that cross midnight (e.g., 11:00 PM to 1:00 AM)
   if (endMin < startMin) {
-    endMin += 24 * 60; // Add 24 hours in minutes
+    endMin += 24 * 60;
     if (targetMin < startMin) {
-      targetMin += 24 * 60; // If target is after midnight too
+      targetMin += 24 * 60;
     }
   }
   
@@ -1008,29 +629,22 @@ function getCurrentArtistForStage(stageKey) {
   
   let currentArtist = null;
   
-  // Parse each line of the schedule to find current artist
   rawSchedule.split('<br>').forEach(line => {
-    // Improved regex that properly handles time formats like "5:45 – 6:30 PM: Wilderado"
-    // or "12:30 – 1:45 AM: JPEGMAFIA"
     const timeMatch = line.match(/^([\d:]+)\s*[–-]\s*([\d:]+\s*(?:AM|PM)):\s*(.+)$/i);
     if (!timeMatch) return;
     
     const [, startRaw, endWithPeriod, artist] = timeMatch;
     
-    // Extract the period (AM/PM) from the end time
     const periodMatch = endWithPeriod.match(/(AM|PM)/i);
-    const period = periodMatch ? periodMatch[0] : 'PM'; // Default to PM if not specified
+    const period = periodMatch ? periodMatch[0] : 'PM';
     
-    // Create full time strings with proper AM/PM
     let start = startRaw.trim();
     let end = endWithPeriod.trim();
     
-    // If start doesn't have AM/PM, add the same as end
     if (!start.includes('AM') && !start.includes('PM')) {
       start += ' ' + period;
     }
     
-    // Check if current time is in this range
     if (timeInRange(currentTime, start, end)) {
       currentArtist = {
         time: `${start} - ${end}`,
@@ -1042,30 +656,24 @@ function getCurrentArtistForStage(stageKey) {
   return currentArtist;
 }
 
-// Update stage indicators to show which stages have performances happening
 function updateStageIndicators() {
-  // First, hide all indicators
   document.querySelectorAll('.stage-indicator').forEach(indicator => {
     indicator.style.display = 'none';
-    // Remove any existing artist name elements
     while (indicator.firstChild) {
       indicator.removeChild(indicator.firstChild);
     }
   });
   
-  // Check each stage for current performances
   for (const stageKey of Object.keys(stageNames)) {
     const currentArtist = getCurrentArtistForStage(stageKey);
     
     if (currentArtist) {
       const indicator = document.getElementById(`${stageKey}-indicator`);
       
-      // Create artist name element
       const artistNameEl = document.createElement('div');
       artistNameEl.className = 'artist-name';
       artistNameEl.textContent = currentArtist.artist;
       
-      // Add it to the indicator and show it
       indicator.appendChild(artistNameEl);
       indicator.style.display = 'block';
     }
@@ -1081,8 +689,8 @@ function initializeTimeline() {
   const markers = document.getElementById('timeline-markers');
   markers.innerHTML = '';
   
-  // Add hour markers
-  for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+  // Add fewer hour markers for mobile
+  for (let hour = START_HOUR; hour <= END_HOUR; hour += 3) {
     const displayHour = hour % 24;
     const ampm = displayHour >= 12 ? 'PM' : 'AM';
     const display12Hour = displayHour % 12 || 12;
@@ -1102,13 +710,52 @@ function initializeTimeline() {
     markers.appendChild(tick);
   }
   
-  // Initialize slider position
   updateTimeSlider();
   
-  // Make slider draggable
   const slider = document.getElementById('timeline-slider');
   let isDragging = false;
   
+  // Touch events for mobile
+  slider.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    e.preventDefault();
+  }, { passive: false });
+  
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    
+    const timeline = document.querySelector('.timeline');
+    const rect = timeline.getBoundingClientRect();
+    const touch = e.touches[0];
+    
+    let position = (touch.clientX - rect.left) / rect.width;
+    position = Math.max(0, Math.min(1, position));
+    
+    slider.style.left = `${position * 100}%`;
+    
+    const totalMinutes = TOTAL_HOURS * 60 * position;
+    const hour = Math.floor(totalMinutes / 60) + START_HOUR;
+    const minute = Math.floor(totalMinutes % 60);
+    
+    const timeString = `${hour % 24 < 10 ? '0' : ''}${hour % 24}:${minute < 10 ? '0' : ''}${minute}`;
+    
+    if (timeString !== currentTime) {
+      currentTime = timeString;
+      document.getElementById('timeRange').value = currentTime;
+      updateTimeDisplay();
+      updateCurrentArtists();
+      highlightCurrentArtists();
+      updateStageIndicators();
+    }
+    
+    e.preventDefault();
+  }, { passive: false });
+  
+  document.addEventListener('touchend', () => {
+    isDragging = false;
+  });
+  
+  // Also support mouse events
   slider.addEventListener('mousedown', () => {
     isDragging = true;
   });
@@ -1124,14 +771,12 @@ function initializeTimeline() {
     
     slider.style.left = `${position * 100}%`;
     
-    // Convert position to time
     const totalMinutes = TOTAL_HOURS * 60 * position;
     const hour = Math.floor(totalMinutes / 60) + START_HOUR;
     const minute = Math.floor(totalMinutes % 60);
     
     const timeString = `${hour % 24 < 10 ? '0' : ''}${hour % 24}:${minute < 10 ? '0' : ''}${minute}`;
     
-    // Only update if time has changed
     if (timeString !== currentTime) {
       currentTime = timeString;
       document.getElementById('timeRange').value = currentTime;
@@ -1146,8 +791,7 @@ function initializeTimeline() {
     isDragging = false;
   });
   
-  // Make timeline clickable
-  const timeline = document.querySelector('.timeline');
+  // Make timeline clickable/tappable
   timeline.addEventListener('click', (e) => {
     const rect = timeline.getBoundingClientRect();
     let position = (e.clientX - rect.left) / rect.width;
@@ -1155,7 +799,6 @@ function initializeTimeline() {
     
     slider.style.left = `${position * 100}%`;
     
-    // Convert position to time
     const totalMinutes = TOTAL_HOURS * 60 * position;
     const hour = Math.floor(totalMinutes / 60) + START_HOUR;
     const minute = Math.floor(totalMinutes % 60);
@@ -1175,7 +818,6 @@ function updateTimeSlider() {
   const [hours, minutes] = parsedTime;
   let totalHours = hours + minutes / 60;
   
-  // Handle after-midnight times
   if (totalHours < START_HOUR) {
     totalHours += 24;
   }
@@ -1189,7 +831,6 @@ function updateCurrentArtists() {
   const artistsList = document.getElementById('artists-list');
   artistsList.innerHTML = '';
   
-  // Check all stages for current performances
   let foundArtists = false;
   
   for (const [stageKey, stageName] of Object.entries(stageNames)) {
@@ -1215,7 +856,6 @@ function updateCurrentArtists() {
   }
 }
 
-// Generate the full schedule for the current day
 function generateFullSchedule() {
   const scheduleGrid = document.getElementById('full-schedule-grid');
   scheduleGrid.innerHTML = '';
@@ -1236,25 +876,20 @@ function generateFullSchedule() {
       noSchedule.textContent = rawSchedule;
       stageSchedule.appendChild(noSchedule);
     } else {
-      // Parse schedule
       const performances = [];
       
       rawSchedule.split('<br>').forEach(line => {
-        // Improved regex for better parsing
         const timeMatch = line.match(/^([\d:]+)\s*[–-]\s*([\d:]+\s*(?:AM|PM)):\s*(.+)$/i);
         if (!timeMatch) return;
         
         const [, startRaw, endWithPeriod, artist] = timeMatch;
         
-        // Extract the period (AM/PM) from the end time
         const periodMatch = endWithPeriod.match(/(AM|PM)/i);
-        const period = periodMatch ? periodMatch[0] : 'PM'; // Default to PM if not specified
+        const period = periodMatch ? periodMatch[0] : 'PM';
         
-        // Create full time strings with proper AM/PM
         let start = startRaw.trim();
         let end = endWithPeriod.trim();
         
-        // If start doesn't have AM/PM, add the same as end
         if (!start.includes('AM') && !start.includes('PM')) {
           start += ' ' + period;
         }
@@ -1267,21 +902,18 @@ function generateFullSchedule() {
         });
       });
       
-      // Sort by start time
       performances.sort((a, b) => {
         const aTime = parse12hTime(a.start);
         const bTime = parse12hTime(b.start);
         
         if (!aTime || !bTime) return 0;
         
-        // Convert to minutes for comparison
         const aMinutes = aTime.hours * 60 + aTime.minutes;
         const bMinutes = bTime.hours * 60 + bTime.minutes;
         
         return aMinutes - bMinutes;
       });
       
-      // Create slot for each performance
       performances.forEach(perf => {
         const artistId = `${stageKey}-${perf.artist.replace(/\s+/g, '-')}`;
         
@@ -1308,18 +940,14 @@ function generateFullSchedule() {
     scheduleGrid.appendChild(stageSchedule);
   }
   
-  // Highlight current performances
   highlightCurrentArtists();
 }
 
-// Highlight performances happening at the current time
 function highlightCurrentArtists() {
-  // Clear all highlights first
   document.querySelectorAll('.artist-slot').forEach(slot => {
     slot.classList.remove('current');
   });
   
-  // Add highlight to current performances
   document.querySelectorAll('.artist-slot').forEach(slot => {
     if (slot.dataset.start && slot.dataset.end) {
       if (timeInRange(currentTime, slot.dataset.start, slot.dataset.end)) {
@@ -1329,31 +957,49 @@ function highlightCurrentArtists() {
   });
 }
 
-// Initialize on load
-window.onload = function() {
-  // Set active day button
-  document.getElementById(`btn-${currentDay}`).classList.add('active');
-  
-  // Initialize stage hover behavior
+// Modified stage interaction for touch devices
+document.addEventListener('DOMContentLoaded', function() {
+  // Convert hover to click/touch for mobile
   document.querySelectorAll('.stage').forEach(stage => {
     const stageKey = stage.dataset.stage;
     const stageName = stage.dataset.name;
     
-    stage.addEventListener('mouseenter', () => {
-      showStageTooltip(stageKey, stageName);
-    });
-    
-    stage.addEventListener('mouseleave', () => {
-      hideStageTooltip(stageKey);
+    // Replace hover with click
+    stage.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      // Check if tooltip is already visible
+      const tooltip = document.getElementById(`tooltip-${stageKey}`);
+      const isVisible = tooltip.style.display === 'block';
+      
+      // Hide all tooltips first
+      document.querySelectorAll('.tooltip').forEach(t => {
+        t.style.display = 'none';
+      });
+      
+      // If it wasn't visible before, show it now
+      if (!isVisible) {
+        showStageTooltip(stageKey, stageName);
+      }
     });
   });
   
+  // Click anywhere else to close tooltips
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.stage') && !e.target.closest('.tooltip')) {
+      document.querySelectorAll('.tooltip').forEach(tooltip => {
+        tooltip.style.display = 'none';
+      });
+    }
+  });
+  
+  document.getElementById(`btn-${currentDay}`).classList.add('active');
   initializeTimeline();
   updateTimeDisplay();
   updateCurrentArtists();
   generateFullSchedule();
   updateStageIndicators();
-};
+});
 </script>
 
 </body>
